@@ -55,8 +55,23 @@ class NotificationManager {
         }
     }
 
-    displayCurrentUrl() {
-        document.getElementById('currentUrl').textContent = window.location.href;
+    async displayCurrentUrl() {
+        try {
+            const response = await fetch('/server-info');
+            const serverInfo = await response.json();
+            const urlElement = document.getElementById('currentUrl');
+            
+            if (serverInfo.isNgrok) {
+                urlElement.textContent = serverInfo.baseUrl;
+                urlElement.style.color = '#28a745';
+            } else {
+                urlElement.textContent = window.location.href;
+                urlElement.style.color = '#6c757d';
+            }
+        } catch (error) {
+            console.error('Failed to get server info:', error);
+            document.getElementById('currentUrl').textContent = window.location.href;
+        }
     }
 
     async subscribe() {

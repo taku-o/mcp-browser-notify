@@ -5,6 +5,7 @@ import { MCPServer } from './mcp/MCPServer';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const NGROK_DOMAIN = process.env.NGROK_DOMAIN;
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
@@ -52,6 +53,15 @@ app.get('/vapid-public-key', (req, res) => {
   res.json({ publicKey: notificationService.getVapidPublicKey() });
 });
 
+app.get('/server-info', (req, res) => {
+  const baseUrl = NGROK_DOMAIN ? `https://${NGROK_DOMAIN}` : `http://localhost:${PORT}`;
+  res.json({ 
+    baseUrl,
+    isNgrok: !!NGROK_DOMAIN,
+    port: PORT
+  });
+});
+
 const mcpServer = new MCPServer(notificationService);
 
 async function startServer(): Promise<void> {
@@ -59,8 +69,16 @@ async function startServer(): Promise<void> {
     await mcpServer.start();
     
     app.listen(PORT, () => {
+      const baseUrl = NGROK_DOMAIN ? `https://${NGROK_DOMAIN}` : `http://localhost:${PORT}`;
       console.log(`Server running on port ${PORT}`);
+      console.log(`Access URL: ${baseUrl}`);
       console.log(`MCP server started successfully`);
+      
+      if (NGROK_DOMAIN) {
+        console.log(`🌐 Using ngrok domain: ${NGROK_DOMAIN}`);
+      } else {
+        console.log('💡 Set NGROK_DOMAIN environment variable to use ngrok');
+      }
     });
   } catch (error) {
     console.error('Failed to start server:', error);

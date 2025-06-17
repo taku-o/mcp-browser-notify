@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 このファイルは、Claude Code (claude.ai/code) がこのリポジトリで作業する際のガイダンスを提供します。
 
 ## プロジェクト概要
@@ -51,6 +53,7 @@ npm test
   - `app.js`: フロントエンドJavaScript
   - `sw.js`: Service Worker（プッシュ通知受信用）
 - `rules/00-project-requirements.mdc`: プロジェクト要件定義（日本語）
+- `rules/01-updates-projects.mdc`: プロジェクト改善要件（英語README、MCP設定、ngrok対応、UI改善）
 - `docs/setup.md`: セットアップ手順
 
 ## 重要なファイル
@@ -67,3 +70,10 @@ VAPID_PUBLIC_KEY=your_public_key
 VAPID_PRIVATE_KEY=your_private_key
 PORT=3000
 ```
+
+## 改善要件（rules/01-updates-projects.mdc）
+
+- **ドキュメント**: 英語版README作成（docs/ディレクトリに配置）
+- **MCP設定**: mcp.json設定例とMCP呼び出し例をREADMEに追加
+- **ngrok対応**: ngrokドメイン利用でlocalhost以外での通知対応
+- **UI改善**: QRコード共有機能の削除（該当メッセージの除去）
