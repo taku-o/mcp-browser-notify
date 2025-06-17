@@ -54,6 +54,8 @@ npm test
   - `sw.js`: Service Worker（プッシュ通知受信用）
 - `rules/00-project-requirements.mdc`: プロジェクト要件定義（日本語）
 - `rules/01-updates-projects.mdc`: プロジェクト改善要件（英語README、MCP設定、ngrok対応、UI改善）
+- `rules/02-updates-projects.mdc`: プロジェクト改善要件（ngrok改善、Dockerサポート）
+- `rules/03-direct-docker.mdc`: 利用手順の改善要件（直接Node実行とDocker実行の分離記載）
 
 ## 重要なファイル
 
@@ -81,3 +83,8 @@ PORT=3000
 
 - **ngrok改善**: ngrok.yml設定ファイルとngrok利用手順の詳細化
 - **Dockerサポート**: Dockerfile、docker-compose.yml追加とDocker実行手順
+
+## 改善要件（rules/03-direct-docker.mdc）
+
+- **利用手順の分離**: 直接Node実行とDocker実行の手順を明確に分けて記載
+- **具体的な手順**: ngrok設定→サーバー起動→MCP設定の流れを両方式で詳述

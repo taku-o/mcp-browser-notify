@@ -11,6 +11,10 @@ A Model Context Protocol (MCP) application for sending web push notifications to
 
 ## Quick Start
 
+Choose one of the following methods:
+
+### Method A: Direct Node.js Execution
+
 1. Install dependencies:
 ```bash
 npm install
@@ -22,6 +26,15 @@ npm run dev
 ```
 
 3. Access `http://localhost:3000` in your browser to register notifications
+
+### Method B: Using Docker
+
+1. Start with Docker Compose:
+```bash
+docker-compose up -d
+```
+
+2. Access `http://localhost:3000` in your browser to register notifications
 
 ## MCP Tools
 
@@ -98,12 +111,38 @@ NGROK_DOMAIN=your-domain.ngrok-free.app npm run dev
 3. Start ngrok: `ngrok http --domain=your-domain.ngrok.io 3000`
 4. The application will automatically use the ngrok URL for notifications
 
-## MCP Configuration
+## Complete Setup Guide
 
-### For Cursor (mcp.json)
+### Option 1: Direct Node.js Execution
 
+#### Step 1: Edit ngrok.yml
+Edit `ngrok.yml` in the project root:
+```yaml
+version: 3
+
+agent:
+  authtoken: your_ngrok_authtoken
+  connect_timeout: 30s
+
+endpoints:
+- name: notify
+  url: https://your-domain.ngrok-free.app
+  upstream:
+    url: 3000
+```
+
+#### Step 2: Start ngrok
+```bash
+ngrok start --config=/path/to/mcp-browser-notify/ngrok.yml notify
+```
+
+#### Step 3: Start Node.js server
+```bash
+NGROK_DOMAIN=your-domain.ngrok-free.app npm run dev
+```
+
+#### Step 4: Configure MCP
 Create `.cursor/mcp.json`:
-
 ```json
 {
   "mcp": {
@@ -111,6 +150,50 @@ Create `.cursor/mcp.json`:
       "browser-notify": {
         "command": "node",
         "args": ["dist/index.js"],
+        "cwd": "/path/to/mcp-browser-notify"
+      }
+    }
+  }
+}
+```
+
+### Option 2: Using Docker
+
+#### Step 1: Edit ngrok.yml
+Edit `ngrok.yml` in the project root:
+```yaml
+version: 3
+
+agent:
+  authtoken: your_ngrok_authtoken
+  connect_timeout: 30s
+
+endpoints:
+- name: notify
+  url: https://your-domain.ngrok-free.app
+  upstream:
+    url: 3000
+```
+
+#### Step 2: Start ngrok
+```bash
+ngrok start --config=/path/to/mcp-browser-notify/ngrok.yml notify
+```
+
+#### Step 3: Start Docker container
+```bash
+docker-compose up -d
+```
+
+#### Step 4: Configure MCP for Docker
+Create `.cursor/mcp.json`:
+```json
+{
+  "mcp": {
+    "servers": {
+      "browser-notify": {
+        "command": "docker",
+        "args": ["exec", "browser-notify-container", "node", "dist/index.js"],
         "cwd": "/path/to/mcp-browser-notify"
       }
     }

@@ -11,6 +11,10 @@ WebプッシュNOTIFICATION方式でユーザーに通知を送信するMCPア�
 
 ## クイックスタート
 
+以下のいずれかの方法を選択してください:
+
+### 方法A: 直接Node.js実行
+
 1. 依存関係のインストール:
 ```bash
 npm install
@@ -22,6 +26,15 @@ npm run dev
 ```
 
 3. ブラウザで `http://localhost:3000` にアクセスして通知を登録
+
+### 方法B: Docker使用
+
+1. Docker Composeで起動:
+```bash
+docker-compose up -d
+```
+
+2. ブラウザで `http://localhost:3000` にアクセスして通知を登録
 
 ## MCPツール
 
@@ -145,4 +158,94 @@ docker run -d \
   -e VAPID_PRIVATE_KEY=your_private_key \
   -e NGROK_DOMAIN=your-domain.ngrok-free.app \
   browser-notify
+```
+
+## 完全セットアップガイド
+
+### オプション1: 直接Node.js実行
+
+#### ステップ1: ngrok.ymlを編集
+プロジェクトルートの`ngrok.yml`を編集:
+```yaml
+version: 3
+
+agent:
+  authtoken: your_ngrok_authtoken
+  connect_timeout: 30s
+
+endpoints:
+- name: notify
+  url: https://your-domain.ngrok-free.app
+  upstream:
+    url: 3000
+```
+
+#### ステップ2: ngrokを起動
+```bash
+ngrok start --config=/path/to/mcp-browser-notify/ngrok.yml notify
+```
+
+#### ステップ3: Node.jsサーバーを起動
+```bash
+NGROK_DOMAIN=your-domain.ngrok-free.app npm run dev
+```
+
+#### ステップ4: MCPを設定
+`.cursor/mcp.json`を作成:
+```json
+{
+  "mcp": {
+    "servers": {
+      "browser-notify": {
+        "command": "node",
+        "args": ["dist/index.js"],
+        "cwd": "/path/to/mcp-browser-notify"
+      }
+    }
+  }
+}
+```
+
+### オプション2: Docker使用
+
+#### ステップ1: ngrok.ymlを編集
+プロジェクトルートの`ngrok.yml`を編集:
+```yaml
+version: 3
+
+agent:
+  authtoken: your_ngrok_authtoken
+  connect_timeout: 30s
+
+endpoints:
+- name: notify
+  url: https://your-domain.ngrok-free.app
+  upstream:
+    url: 3000
+```
+
+#### ステップ2: ngrokを起動
+```bash
+ngrok start --config=/path/to/mcp-browser-notify/ngrok.yml notify
+```
+
+#### ステップ3: Dockerコンテナを起動
+```bash
+docker-compose up -d
+```
+
+#### ステップ4: Docker用MCPを設定
+`.cursor/mcp.json`を作成:
+```json
+{
+  "mcp": {
+    "servers": {
+      "browser-notify": {
+        "command": "docker",
+        "args": ["exec", "browser-notify-container", "node", "dist/index.js"],
+        "cwd": "/path/to/mcp-browser-notify"
+      }
+    }
+  }
+}
 ```

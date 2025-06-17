@@ -4,9 +4,15 @@ A Model Context Protocol (MCP) application for sending web push notifications.
 
 ## 🚀 Quick Start
 
+### Option A: Direct Node.js
 ```bash
 npm install
 npm run dev
+```
+
+### Option B: Docker
+```bash
+docker-compose up -d
 ```
 
 Visit `http://localhost:3000` to register for notifications.
@@ -40,8 +46,8 @@ docker-compose up -d
 
 ## ⚙️ MCP Configuration
 
-For Cursor, create `.cursor/mcp.json`:
-
+### For Direct Node.js
+Create `.cursor/mcp.json`:
 ```json
 {
   "mcp": {
@@ -49,6 +55,22 @@ For Cursor, create `.cursor/mcp.json`:
       "browser-notify": {
         "command": "node",
         "args": ["dist/index.js"],
+        "cwd": "/path/to/mcp-browser-notify"
+      }
+    }
+  }
+}
+```
+
+### For Docker
+Create `.cursor/mcp.json`:
+```json
+{
+  "mcp": {
+    "servers": {
+      "browser-notify": {
+        "command": "docker",
+        "args": ["exec", "browser-notify-container", "node", "dist/index.js"],
         "cwd": "/path/to/mcp-browser-notify"
       }
     }
