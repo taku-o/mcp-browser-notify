@@ -1,3 +1,4 @@
+==
 npm install -g @anthropic-ai/claude-code
 
 claude
@@ -9,3 +10,10 @@ claude -r
 /ide
 /mcp
 
+
+==
+npm install -g @anthropic-ai/claude-code
+claude
+/init "日本語で作成してください"
+
+プログラムの作成を開始してください。
