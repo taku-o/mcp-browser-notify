@@ -56,3 +56,93 @@ PORT=3000
 ```
 
 初回起動時にVAPIDキーが自動生成されます。
+
+## ngrok連携
+
+### 方法1: ngrok.yml使用（推奨）
+
+1. プロジェクトルートの`ngrok.yml`を編集:
+```yaml
+version: 3
+
+agent:
+  authtoken: your_ngrok_authtoken
+  connect_timeout: 30s
+
+endpoints:
+- name: notify
+  url: https://your-domain.ngrok-free.app
+  upstream:
+    url: 3000
+```
+
+2. 設定ファイルでngrokを起動:
+```bash
+ngrok start --config=/path/to/mcp-browser-notify/ngrok.yml notify
+```
+
+3. 環境変数を設定:
+```bash
+NGROK_DOMAIN=your-domain.ngrok-free.app npm run dev
+```
+
+### 方法2: 直接コマンド
+
+1. ngrokアカウントとドメインを設定
+2. `NGROK_DOMAIN`環境変数を設定
+3. ngrokを起動: `ngrok http --domain=your-domain.ngrok.io 3000`
+4. アプリケーションが自動的にngrok URLを使用
+
+## Dockerサポート
+
+### Docker Compose使用（推奨）
+
+1. コンテナをビルドして起動:
+```bash
+docker-compose up -d
+```
+
+2. ログを確認:
+```bash
+docker-compose logs -f browser-notify
+```
+
+3. コンテナを停止:
+```bash
+docker-compose down
+```
+
+### Docker直接使用
+
+1. イメージをビルド:
+```bash
+docker build -t browser-notify .
+```
+
+2. コンテナを実行:
+```bash
+docker run -d \
+  --name browser-notify-container \
+  -p 3000:3000 \
+  -e NODE_ENV=production \
+  browser-notify
+```
+
+3. 停止と削除:
+```bash
+docker stop browser-notify-container
+docker rm browser-notify-container
+```
+
+### 環境変数付きDocker実行
+
+```bash
+docker run -d \
+  --name browser-notify-container \
+  -p 3000:3000 \
+  -e NODE_ENV=production \
+  -e VAPID_PUBLIC_KEY=your_public_key \
+  -e VAPID_PRIVATE_KEY=your_private_key \
+  -e NGROK_DOMAIN=your-domain.ngrok-free.app \
+  browser-notify
+```

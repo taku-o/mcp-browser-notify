@@ -25,10 +25,17 @@ Visit `http://localhost:3000` to register for notifications.
 
 ## 🌐 ngrok Support
 
-Set `NGROK_DOMAIN` environment variable for external access:
+Edit `ngrok.yml` and start with config:
 
 ```bash
-NGROK_DOMAIN=your-domain.ngrok.io npm run dev
+ngrok start --config=./ngrok.yml notify
+NGROK_DOMAIN=your-domain.ngrok-free.app npm run dev
+```
+
+## 🐳 Docker Support
+
+```bash
+docker-compose up -d
 ```
 
 ## ⚙️ MCP Configuration

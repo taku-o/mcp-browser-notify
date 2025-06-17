@@ -1,0 +1,11 @@
+version: 3
+
+agent:
+  authtoken: your_authtoken
+  connect_timeout: 30s
+
+endpoints:
+- name: notify
+  url: https://your_domain.ngrok-free.app
+  upstream:
+    url: 3000

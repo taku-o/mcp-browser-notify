@@ -64,7 +64,34 @@ VAPID keys are automatically generated on first startup if not provided.
 
 ## ngrok Integration
 
-To use ngrok for external access (recommended for mobile device registration):
+### Method 1: Using ngrok.yml (Recommended)
+
+1. Edit `ngrok.yml` in the project root:
+```yaml
+version: 3
+
+agent:
+  authtoken: your_ngrok_authtoken
+  connect_timeout: 30s
+
+endpoints:
+- name: notify
+  url: https://your-domain.ngrok-free.app
+  upstream:
+    url: 3000
+```
+
+2. Start ngrok with config:
+```bash
+ngrok start --config=/path/to/mcp-browser-notify/ngrok.yml notify
+```
+
+3. Set environment variable:
+```bash
+NGROK_DOMAIN=your-domain.ngrok-free.app npm run dev
+```
+
+### Method 2: Direct Command
 
 1. Set up your ngrok account and domain
 2. Set the `NGROK_DOMAIN` environment variable
@@ -134,6 +161,60 @@ npm run lint
 
 # Run tests
 npm test
+```
+
+## Docker Support
+
+### Using Docker Compose (Recommended)
+
+1. Build and start the container:
+```bash
+docker-compose up -d
+```
+
+2. View logs:
+```bash
+docker-compose logs -f browser-notify
+```
+
+3. Stop the container:
+```bash
+docker-compose down
+```
+
+### Using Docker directly
+
+1. Build the image:
+```bash
+docker build -t browser-notify .
+```
+
+2. Run the container:
+```bash
+docker run -d \
+  --name browser-notify-container \
+  -p 3000:3000 \
+  -e NODE_ENV=production \
+  browser-notify
+```
+
+3. Stop and remove:
+```bash
+docker stop browser-notify-container
+docker rm browser-notify-container
+```
+
+### Docker with Environment Variables
+
+```bash
+docker run -d \
+  --name browser-notify-container \
+  -p 3000:3000 \
+  -e NODE_ENV=production \
+  -e VAPID_PUBLIC_KEY=your_public_key \
+  -e VAPID_PRIVATE_KEY=your_private_key \
+  -e NGROK_DOMAIN=your-domain.ngrok-free.app \
+  browser-notify
 ```
 
 ## Project Structure

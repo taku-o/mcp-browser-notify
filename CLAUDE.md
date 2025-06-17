@@ -54,7 +54,6 @@ npm test
   - `sw.js`: Service Worker（プッシュ通知受信用）
 - `rules/00-project-requirements.mdc`: プロジェクト要件定義（日本語）
 - `rules/01-updates-projects.mdc`: プロジェクト改善要件（英語README、MCP設定、ngrok対応、UI改善）
-- `docs/setup.md`: セットアップ手順
 
 ## 重要なファイル
 
@@ -77,3 +76,8 @@ PORT=3000
 - **MCP設定**: mcp.json設定例とMCP呼び出し例をREADMEに追加
 - **ngrok対応**: ngrokドメイン利用でlocalhost以外での通知対応
 - **UI改善**: QRコード共有機能の削除（該当メッセージの除去）
+
+## 改善要件（rules/02-updates-projects.mdc）
+
+- **ngrok改善**: ngrok.yml設定ファイルとngrok利用手順の詳細化
+- **Dockerサポート**: Dockerfile、docker-compose.yml追加とDocker実行手順
