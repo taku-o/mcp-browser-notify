@@ -1,7 +1,7 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio';
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types';
-import { NotificationService } from '../services/NotificationService';
+import { NotificationService } from '../services/NotificationService.js';
 
 export class MCPServer {
   private server: Server;

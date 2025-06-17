@@ -1,8 +1,8 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { NotificationService } from './services/NotificationService';
-import { MCPServer } from './mcp/MCPServer';
+import { NotificationService } from './services/NotificationService.js';
+import { MCPServer } from './mcp/MCPServer.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
