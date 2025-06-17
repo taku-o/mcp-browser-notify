@@ -7,17 +7,10 @@ export class MCPServer {
   private server: Server;
 
   constructor(private notificationService: NotificationService) {
-    this.server = new Server(
-      {
-        name: 'mcp-browser-notify',
-        version: '1.0.0'
-      },
-      {
-        capabilities: {
-          tools: {}
-        }
-      }
-    );
+    this.server = new Server({
+      name: 'mcp-browser-notify',
+      version: '1.0.0'
+    });
 
     this.setupHandlers();
   }

@@ -17,8 +17,8 @@ export interface StoredSubscription extends PushSubscription {
 
 export class NotificationService {
   private subscriptions: Map<string, StoredSubscription> = new Map();
-  private vapidPublicKey: string;
-  private vapidPrivateKey: string;
+  private vapidPublicKey!: string;
+  private vapidPrivateKey!: string;
 
   constructor() {
     this.initializeVapidKeys();
