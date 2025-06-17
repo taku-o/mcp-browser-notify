@@ -20,12 +20,17 @@ Choose one of the following methods:
 npm install
 ```
 
-2. Start development server:
+2. Build the application:
+```bash
+npm run build
+```
+
+3. Start development server:
 ```bash
 npm run dev
 ```
 
-3. Access `http://localhost:3000` in your browser to register notifications
+4. Access `http://localhost:3000` in your browser to register notifications
 
 ### Method B: Using Docker
 
@@ -131,17 +136,23 @@ endpoints:
     url: 3000
 ```
 
-#### Step 2: Start ngrok
+#### Step 2: Build the application
+```bash
+npm install
+npm run build
+```
+
+#### Step 3: Start ngrok
 ```bash
 ngrok start --config=/path/to/mcp-browser-notify/ngrok.yml notify
 ```
 
-#### Step 3: Start Node.js server
+#### Step 4: Start Node.js server
 ```bash
 NGROK_DOMAIN=your-domain.ngrok-free.app npm run dev
 ```
 
-#### Step 4: Configure MCP
+#### Step 5: Configure MCP
 Create `.cursor/mcp.json`:
 ```json
 {

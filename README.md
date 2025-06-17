@@ -7,6 +7,7 @@ A Model Context Protocol (MCP) application for sending web push notifications.
 ### Option A: Direct Node.js
 ```bash
 npm install
+npm run build
 npm run dev
 ```
 

@@ -20,12 +20,17 @@ WebプッシュNOTIFICATION方式でユーザーに通知を送信するMCPア�
 npm install
 ```
 
-2. 開発サーバー起動:
+2. アプリケーションのビルド:
+```bash
+npm run build
+```
+
+3. 開発サーバー起動:
 ```bash
 npm run dev
 ```
 
-3. ブラウザで `http://localhost:3000` にアクセスして通知を登録
+4. ブラウザで `http://localhost:3000` にアクセスして通知を登録
 
 ### 方法B: Docker使用
 
@@ -180,17 +185,23 @@ endpoints:
     url: 3000
 ```
 
-#### ステップ2: ngrokを起動
+#### ステップ2: アプリケーションのビルド
+```bash
+npm install
+npm run build
+```
+
+#### ステップ3: ngrokを起動
 ```bash
 ngrok start --config=/path/to/mcp-browser-notify/ngrok.yml notify
 ```
 
-#### ステップ3: Node.jsサーバーを起動
+#### ステップ4: Node.jsサーバーを起動
 ```bash
 NGROK_DOMAIN=your-domain.ngrok-free.app npm run dev
 ```
 
-#### ステップ4: MCPを設定
+#### ステップ5: MCPを設定
 `.cursor/mcp.json`を作成:
 ```json
 {
