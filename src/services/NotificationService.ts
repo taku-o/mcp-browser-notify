@@ -49,7 +49,7 @@ export interface Database {
 }
 
 export class NotificationService {
-  private supabase: SupabaseClient<Database>;
+  private supabase!: SupabaseClient<Database>;
   private initialized = false;
 
   constructor() {
@@ -327,15 +327,16 @@ export class NotificationService {
 
     const { data, error } = await this.supabase
       .from('subscriptions')
-      .select('user_id')
-      .group('user_id');
+      .select('user_id', { count: 'exact' });
 
     if (error) {
       console.error('Failed to get user count:', error);
       throw new Error(`Failed to get user count: ${error.message}`);
     }
 
-    return data?.length || 0;
+    // Get unique user IDs
+    const uniqueUserIds = new Set(data?.map(sub => sub.user_id) || []);
+    return uniqueUserIds.size;
   }
 
 }
