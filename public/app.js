@@ -26,6 +26,11 @@ class FCMNotificationManager {
     }
 
     async waitForFirebaseInit() {
+        // ブラウザサポートチェック
+        if (!('serviceWorker' in navigator)) {
+            throw new Error('このブラウザはService Workerをサポートしていません');
+        }
+
         // Firebase初期化を待つ
         let attempts = 0;
         while (!window.firebaseMessaging && attempts < 50) {
@@ -68,7 +73,7 @@ class FCMNotificationManager {
             this.showStatus(`通知を受信: ${title || 'MCP Browser Notify'} - ${body}`, 'info');
             
             // ブラウザがフォーカスされていない場合は通知を表示
-            if (document.hidden) {
+            if (document.hidden && 'Notification' in window && Notification.permission === 'granted') {
                 new Notification(title || 'MCP Browser Notify', {
                     body: body,
                     icon: '/icon-192x192.png'
@@ -134,8 +139,26 @@ class FCMNotificationManager {
 
             this.showStatus('通知の許可を求めています...', 'info');
 
-            // 通知の許可を求める
-            const permission = await Notification.requestPermission();
+            // 通知の許可を求める（ブラウザ互換性を考慮）
+            let permission;
+            if (!('Notification' in window)) {
+                throw new Error('このブラウザは通知をサポートしていません');
+            } else if (Notification.permission === 'granted') {
+                permission = 'granted';
+            } else if (Notification.permission !== 'denied') {
+                // 古いブラウザ向けの互換性対応
+                if (typeof Notification.requestPermission === 'function') {
+                    permission = await Notification.requestPermission();
+                } else {
+                    // 非常に古いブラウザ向け
+                    permission = Notification.requestPermission(function(result) {
+                        return result;
+                    });
+                }
+            } else {
+                throw new Error('通知の許可が拒否されています。ブラウザ設定で許可してください。');
+            }
+
             if (permission !== 'granted') {
                 throw new Error('通知の許可が拒否されました');
             }
