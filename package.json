@@ -11,12 +11,16 @@
     "lint": "eslint src/**/*.ts",
     "test": "jest"
   },
-  "keywords": ["mcp", "web-push", "notifications"],
+  "keywords": [
+    "mcp",
+    "web-push",
+    "notifications"
+  ],
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^20.0.0",
     "@types/express": "^4.17.21",
+    "@types/node": "^20.0.0",
     "@types/web-push": "^3.3.8",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
@@ -26,8 +30,10 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.4.0",
+    "@supabase/supabase-js": "^2.50.0",
     "express": "^4.18.2",
-    "web-push": "^3.6.6",
-    "@modelcontextprotocol/sdk": "^0.4.0"
+    "firebase-admin": "^13.4.0",
+    "web-push": "^3.6.6"
   }
 }

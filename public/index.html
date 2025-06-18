@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MCP Browser Notify - 通知設定</title>
+    <title>MCP Browser Notify - 通知設定 (FCM版)</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -61,6 +61,23 @@
         .device-selection input[type="radio"] {
             margin-right: 8px;
         }
+        .user-input {
+            margin: 15px 0;
+        }
+        .user-input label {
+            display: block;
+            margin: 5px 0;
+            font-weight: bold;
+        }
+        .user-input input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
         .status {
             padding: 10px;
             margin: 10px 0;
@@ -102,19 +119,53 @@
             border: 1px solid #ddd;
             border-radius: 4px;
             font-size: 16px;
+            box-sizing: border-box;
+        }
+        .config-notice {
+            background: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+            border: 1px solid #ffeaa7;
+        }
+        .config-notice h3 {
+            margin-top: 0;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>MCP Browser Notify</h1>
+        <h1>MCP Browser Notify (FCM版)</h1>
         <p style="text-align: center; color: #666;">
-            Webプッシュ通知の登録とテストができます
+            Firebase Cloud Messaging を使用したプッシュ通知の登録とテストができます
         </p>
+
+        <div class="config-notice">
+            <h3>⚙️ 設定が必要です</h3>
+            <p>このアプリケーションを使用するには、Firebase プロジェクトの設定が必要です。</p>
+            <ul>
+                <li><strong>Firebase Console</strong> でプロジェクトを作成</li>
+                <li><strong>Web アプリ</strong> を追加して設定情報を取得</li>
+                <li><strong>Cloud Messaging</strong> を有効化</li>
+                <li>下記のFirebase設定を更新してください</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>👤 ユーザー設定</h2>
+            <p>通知を受け取るユーザーIDを設定してください。このIDでAIからの通知を管理します。</p>
+            
+            <div class="user-input">
+                <label for="userId">ユーザーID:</label>
+                <input type="text" id="userId" placeholder="例: user001, taro@example.com など" maxlength="50">
+                <small style="color: #666;">任意の識別子を入力してください（英数字、記号可）</small>
+            </div>
+        </div>
 
         <div class="section">
             <h2>🔔 通知許可設定</h2>
-            <p>まず、このブラウザで通知を受け取るための許可設定を行います。</p>
+            <p>このブラウザで通知を受け取るための許可設定を行います。</p>
             
             <div class="device-selection">
                 <h3>デバイスタイプを選択:</h3>
@@ -137,7 +188,7 @@
 
         <div class="section">
             <h2>📱 他のデバイスでの登録</h2>
-            <p>他のデバイス（スマートフォンなど）で通知を受け取りたい場合は、そのデバイスのブラウザで以下のURLにアクセスしてください。</p>
+            <p>他のデバイス（スマートフォンなど）で通知を受け取りたい場合は、同じユーザーIDでそのデバイスのブラウザで以下のURLにアクセスしてください。</p>
             <div class="qr-code">
                 <p><strong>現在のURL:</strong></p>
                 <p id="currentUrl" style="word-break: break-all; background: #f8f9fa; padding: 10px; border-radius: 4px;"></p>
@@ -149,10 +200,37 @@
             <p>通知が正しく動作するかテストできます。</p>
             <div class="test-notification">
                 <input type="text" id="testMessage" placeholder="テストメッセージを入力してください" value="テスト通知です！">
+                <input type="text" id="testTitle" placeholder="通知タイトル（オプション）" value="">
                 <button id="testNotifyBtn" disabled>テスト通知を送信</button>
             </div>
         </div>
     </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Firebase 設定 - 実際のプロジェクトの設定に変更してください
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getMessaging, getToken, onMessage } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js';
+        
+        const firebaseConfig = {
+            // TODO: 実際のFirebaseプロジェクトの設定に変更
+            apiKey: "your-api-key",
+            authDomain: "your-project.firebaseapp.com",
+            projectId: "your-project-id",
+            storageBucket: "your-project.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "your-app-id"
+        };
+
+        // Firebase初期化
+        const app = initializeApp(firebaseConfig);
+        const messaging = getMessaging(app);
+
+        // グローバルに公開
+        window.firebaseMessaging = messaging;
+        window.getToken = getToken;
+        window.onMessage = onMessage;
+    </script>
 
     <script src="app.js"></script>
 </body>

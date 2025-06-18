@@ -56,6 +56,7 @@ npm test
 - `rules/01-updates-projects.mdc`: プロジェクト改善要件（英語README、MCP設定、ngrok対応、UI改善）
 - `rules/02-updates-projects.mdc`: プロジェクト改善要件（ngrok改善、Dockerサポート）
 - `rules/03-direct-docker.mdc`: 利用手順の改善要件（直接Node実行とDocker実行の分離記載）
+- `rules/04-refactoring-plan.mdc`: リファクタリング計画（FCMベース実装への移行）
 - `rules/05-how-to-proceed-with-development.mdc`: 開発手順ガイドライン（Git作業フロー）
 
 ## 重要なファイル
@@ -89,6 +90,23 @@ PORT=3000
 
 - **利用手順の分離**: 直接Node実行とDocker実行の手順を明確に分けて記載
 - **具体的な手順**: ngrok設定→サーバー起動→MCP設定の流れを両方式で詳述
+
+## リファクタリング計画（rules/04-refactoring-plan.mdc）
+
+プログラムの大幅な作り替えを実行中です：
+
+### 新仕様要件
+- **実行環境**: Cursor AIから起動するMCPツールとして動作
+- **通知対象**: PC、Desktop Mac、iPhone、Android
+- **主要機能**: AIからの呼び出しでユーザーにメッセージ送信
+- **外部サービス**: Firebase Cloud Messaging (FCM) 利用
+- **データ管理**: MongoDB Atlas / Supabase でSubscription情報管理
+
+### 提案仕様（PC/Desktop Mac）
+- **サービス**: FCMのWebプッシュ通知
+- **実装**: Webサイトでプッシュ許可取得 → DB保存 → AI呼び出し時に通知送信
+- **メリット**: ブラウザ終了後も通知可能、低コスト、開発コスト低
+- **デメリット**: ユーザー許可必要、iOS Safari要PWA化
 
 ## 開発手順（rules/05-how-to-proceed-with-development.mdc）
 

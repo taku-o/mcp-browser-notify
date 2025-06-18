@@ -1,15 +1,23 @@
-class NotificationManager {
+class FCMNotificationManager {
     constructor() {
         this.subscriptionId = localStorage.getItem('subscriptionId');
-        this.vapidPublicKey = null;
+        this.userId = localStorage.getItem('userId');
+        this.fcmToken = null;
+        this.messaging = null;
         this.init();
     }
 
     async init() {
-        await this.loadVapidPublicKey();
+        await this.waitForFirebaseInit();
         this.setupEventListeners();
         this.updateUI();
         this.displayCurrentUrl();
+        this.setupForegroundMessageHandling();
+        
+        // ユーザーIDの復元
+        if (this.userId) {
+            document.getElementById('userId').value = this.userId;
+        }
         
         if (this.subscriptionId) {
             this.showStatus('既に通知が有効になっています', 'success');
@@ -17,21 +25,56 @@ class NotificationManager {
         }
     }
 
-    async loadVapidPublicKey() {
-        try {
-            const response = await fetch('/vapid-public-key');
-            const data = await response.json();
-            this.vapidPublicKey = data.publicKey;
-        } catch (error) {
-            console.error('Failed to load VAPID public key:', error);
-            this.showStatus('VAPIDキーの読み込みに失敗しました', 'error');
+    async waitForFirebaseInit() {
+        // Firebase初期化を待つ
+        let attempts = 0;
+        while (!window.firebaseMessaging && attempts < 50) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            attempts++;
         }
+        
+        if (!window.firebaseMessaging) {
+            throw new Error('Firebase の初期化に失敗しました。Firebase設定を確認してください。');
+        }
+        
+        this.messaging = window.firebaseMessaging;
+        console.log('Firebase messaging initialized');
     }
 
     setupEventListeners() {
         document.getElementById('subscribeBtn').addEventListener('click', () => this.subscribe());
         document.getElementById('unsubscribeBtn').addEventListener('click', () => this.unsubscribe());
         document.getElementById('testNotifyBtn').addEventListener('click', () => this.sendTestNotification());
+        
+        // ユーザーID入力時の保存
+        document.getElementById('userId').addEventListener('change', (e) => {
+            this.userId = e.target.value.trim();
+            if (this.userId) {
+                localStorage.setItem('userId', this.userId);
+            } else {
+                localStorage.removeItem('userId');
+            }
+        });
+    }
+
+    setupForegroundMessageHandling() {
+        if (!this.messaging) return;
+        
+        // フォアグラウンドでメッセージを受信した場合の処理
+        window.onMessage(this.messaging, (payload) => {
+            console.log('Foreground message received:', payload);
+            
+            const { title, body } = payload.notification || {};
+            this.showStatus(`通知を受信: ${title || 'MCP Browser Notify'} - ${body}`, 'info');
+            
+            // ブラウザがフォーカスされていない場合は通知を表示
+            if (document.hidden) {
+                new Notification(title || 'MCP Browser Notify', {
+                    body: body,
+                    icon: '/icon-192x192.png'
+                });
+            }
+        });
     }
 
     updateUI() {
@@ -45,7 +88,8 @@ class NotificationManager {
             subscriptionInfo.style.display = 'block';
             subscriptionInfo.innerHTML = `
                 <strong>登録情報:</strong><br>
-                ID: ${this.subscriptionId}<br>
+                ユーザーID: ${this.userId}<br>
+                サブスクリプションID: ${this.subscriptionId}<br>
                 登録日時: ${new Date(localStorage.getItem('subscriptionTime') || Date.now()).toLocaleString('ja-JP')}
             `;
         } else {
@@ -76,34 +120,68 @@ class NotificationManager {
 
     async subscribe() {
         try {
-            if (!('serviceWorker' in navigator)) {
-                throw new Error('Service Worker がサポートされていません');
+            // ユーザーIDの検証
+            const userIdInput = document.getElementById('userId').value.trim();
+            if (!userIdInput) {
+                throw new Error('ユーザーIDを入力してください');
             }
+            this.userId = userIdInput;
+            localStorage.setItem('userId', this.userId);
 
-            if (!('PushManager' in window)) {
-                throw new Error('Push messaging がサポートされていません');
+            if (!this.messaging) {
+                throw new Error('Firebase messaging が初期化されていません');
             }
 
             this.showStatus('通知の許可を求めています...', 'info');
 
+            // 通知の許可を求める
             const permission = await Notification.requestPermission();
             if (permission !== 'granted') {
                 throw new Error('通知の許可が拒否されました');
             }
 
+            // Service Worker を登録
             await this.registerServiceWorker();
-            const subscription = await this.createPushSubscription();
+
+            // FCMトークンを取得
+            this.showStatus('FCMトークンを取得しています...', 'info');
             
+            try {
+                this.fcmToken = await window.getToken(this.messaging, {
+                    vapidKey: await this.getVapidKey() // VAPIDキーも必要
+                });
+            } catch (tokenError) {
+                console.warn('VAPID key error, trying without:', tokenError);
+                // VAPIDキーなしで試行
+                this.fcmToken = await window.getToken(this.messaging);
+            }
+
+            if (!this.fcmToken) {
+                throw new Error('FCMトークンの取得に失敗しました');
+            }
+
+            console.log('FCM Token obtained:', this.fcmToken);
+
+            // デバイス情報を取得
             const deviceType = document.querySelector('input[name="deviceType"]:checked').value;
+            const deviceInfo = {
+                userAgent: navigator.userAgent,
+                platform: navigator.platform
+            };
+
+            // サーバーに登録
+            this.showStatus('サーバーに登録しています...', 'info');
             
-            const response = await fetch('/subscribe', {
+            const response = await fetch('/api/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    subscription: subscription,
-                    deviceType: deviceType
+                    userId: this.userId,
+                    fcmToken: this.fcmToken,
+                    deviceType: deviceType,
+                    deviceInfo: deviceInfo
                 }),
             });
 
@@ -126,7 +204,23 @@ class NotificationManager {
         }
     }
 
+    async getVapidKey() {
+        try {
+            const response = await fetch('/api/vapid-key');
+            if (!response.ok) return null;
+            const data = await response.json();
+            return data.vapidKey;
+        } catch (error) {
+            console.warn('VAPID key not available:', error);
+            return null;
+        }
+    }
+
     async registerServiceWorker() {
+        if (!('serviceWorker' in navigator)) {
+            throw new Error('Service Worker がサポートされていません');
+        }
+
         if (!navigator.serviceWorker.controller) {
             const registration = await navigator.serviceWorker.register('/sw.js');
             console.log('Service Worker registered:', registration);
@@ -149,24 +243,13 @@ class NotificationManager {
         }
     }
 
-    async createPushSubscription() {
-        const registration = await navigator.serviceWorker.ready;
-        
-        const subscription = await registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: this.urlBase64ToUint8Array(this.vapidPublicKey)
-        });
-
-        return subscription;
-    }
-
     async unsubscribe() {
         try {
             if (!this.subscriptionId) {
                 throw new Error('登録されていません');
             }
 
-            const response = await fetch(`/unsubscribe/${this.subscriptionId}`, {
+            const response = await fetch(`/api/unsubscribe/${this.subscriptionId}`, {
                 method: 'DELETE',
             });
 
@@ -191,20 +274,26 @@ class NotificationManager {
 
     async sendTestNotification() {
         try {
+            if (!this.userId) {
+                throw new Error('ユーザーIDが設定されていません');
+            }
+
             if (!this.subscriptionId) {
                 throw new Error('通知が登録されていません');
             }
 
             const message = document.getElementById('testMessage').value || 'テスト通知です！';
+            const title = document.getElementById('testTitle').value || undefined;
             
-            const response = await fetch('/notify', {
+            const response = await fetch('/api/test-notification', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    subscriptionId: this.subscriptionId,
-                    message: message
+                    userId: this.userId,
+                    message: message,
+                    title: title
                 }),
             });
 
@@ -241,21 +330,19 @@ class NotificationManager {
     disableTestButton() {
         document.getElementById('testNotifyBtn').disabled = true;
     }
-
-    urlBase64ToUint8Array(base64String) {
-        const padding = '='.repeat((4 - base64String.length % 4) % 4);
-        const base64 = (base64String + padding)
-            .replace(/\-/g, '+')
-            .replace(/_/g, '/');
-
-        const rawData = window.atob(base64);
-        const outputArray = new Uint8Array(rawData.length);
-
-        for (let i = 0; i < rawData.length; ++i) {
-            outputArray[i] = rawData.charCodeAt(i);
-        }
-        return outputArray;
-    }
 }
 
-new NotificationManager();
+// Firebase初期化後にマネージャーを開始
+document.addEventListener('DOMContentLoaded', () => {
+    try {
+        new FCMNotificationManager();
+    } catch (error) {
+        console.error('Failed to initialize FCM Notification Manager:', error);
+        
+        const statusDiv = document.getElementById('status');
+        if (statusDiv) {
+            statusDiv.textContent = `初期化エラー: ${error.message}`;
+            statusDiv.className = 'status error';
+        }
+    }
+});
