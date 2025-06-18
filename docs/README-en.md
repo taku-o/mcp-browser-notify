@@ -1,17 +1,61 @@
 # MCP Browser Notify
 
-A Model Context Protocol (MCP) application for sending web push notifications to users.
+A Model Context Protocol (MCP) application for sending web push notifications to users using Firebase Cloud Messaging (FCM).
 
 ## Features
 
-- 🔔 **Notification Registration**: Obtain push notification permissions through web browsers
-- 📱 **Multi-Device Support**: Support for both desktop and mobile devices  
-- 🚀 **Instant Notifications**: Send notifications via MCP tools
-- 🛠️ **Management Functions**: Registration, removal, and listing capabilities
+- 🔔 **Notification Registration**: Obtain FCM tokens and register users through web browsers
+- 📱 **Multi-Device Support**: Support for both desktop and mobile devices
+- 👤 **User Management**: User ID-based notification management
+- 🚀 **Instant Notifications**: Send notifications via 6 MCP tools
+- 🗄️ **Persistence**: Store registration data in Supabase database
+
+## Prerequisites
+
+### Firebase Project Setup
+1. Create a Firebase project at [Firebase Console](https://console.firebase.google.com/)
+2. Enable Cloud Messaging
+3. Add a web app and obtain Firebase configuration
+4. Generate a service account key
+
+### Supabase Database Setup
+1. Create a Supabase project at [Supabase](https://supabase.com/)
+2. Create the following table:
+
+```sql
+CREATE TABLE subscriptions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id TEXT NOT NULL,
+  fcm_token TEXT NOT NULL,
+  device_type TEXT CHECK (device_type IN ('desktop', 'mobile')) DEFAULT 'desktop',
+  device_info JSONB DEFAULT '{}',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  last_used TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create indexes for better performance
+CREATE INDEX idx_subscriptions_user_id ON subscriptions(user_id);
+CREATE INDEX idx_subscriptions_fcm_token ON subscriptions(fcm_token);
+```
+
+## Environment Variables
+
+Create a `.env` file:
+```bash
+# Firebase Configuration (Required)
+FIREBASE_PROJECT_ID=your-project-id
+FIREBASE_SERVICE_ACCOUNT_KEY={"type":"service_account","project_id":"your-project-id",...}
+
+# Supabase Configuration (Required)
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your-anon-key
+
+# Optional
+PORT=3000
+NGROK_DOMAIN=your-domain.ngrok-free.app
+```
 
 ## Quick Start
-
-Choose one of the following methods:
 
 ### Method A: Direct Node.js Execution
 
@@ -43,117 +87,47 @@ docker-compose up -d
 
 ## MCP Tools
 
-This application provides 4 MCP tools:
+This application provides 6 powerful MCP tools:
 
-- `send_notification`: Send notification to a specific subscription ID
-- `send_notification_to_all`: Send broadcast notification to all registered devices
-- `list_subscriptions`: List all active notification subscriptions
-- `remove_subscription`: Remove a notification subscription
+### Core Notification Tools
+- **`send_notification`**: Send notification to a specific user
+  - Parameters: `userId`, `message`, `title` (optional)
+- **`send_notification_to_all`**: Broadcast notification to all registered users
+  - Parameters: `message`, `title` (optional)
+
+### User Management Tools
+- **`register_user`**: Register a new user with FCM token
+  - Parameters: `userId`, `fcmToken`, `deviceType`, `deviceInfo` (optional)
+- **`list_subscriptions`**: List active subscriptions with optional user filtering
+  - Parameters: `userId` (optional)
+- **`remove_subscription`**: Remove a specific subscription
+  - Parameters: `subscriptionId`
+
+### Statistics Tool
+- **`get_user_stats`**: Get comprehensive statistics about users and subscriptions
+  - Returns: user count, subscription count, device type breakdown
 
 ## Usage
 
-1. Click "Allow Notifications" on the web page
-2. Select "Allow" in the browser's notification permission dialog
-3. After registration, you can send notifications via MCP tools
-4. Test notifications are also available for verification
+1. Enter a user ID on the web page
+2. Click "Allow Notifications"
+3. Select "Allow" in the browser's notification permission dialog
+4. FCM token is automatically obtained and saved to the database
+5. Notifications can be sent via MCP tools
 
 ## Technology Stack
 
 - **Backend**: Node.js + Express + TypeScript
-- **Push Notifications**: web-push (VAPID)
+- **Push Notifications**: Firebase Cloud Messaging (FCM)
+- **Database**: Supabase PostgreSQL
 - **MCP Integration**: @modelcontextprotocol/sdk
-- **Frontend**: Vanilla JavaScript + Service Worker
+- **Frontend**: Firebase SDK + Service Worker
 
-## Environment Variables
+## MCP Configuration
 
-```bash
-# Optional: Use existing VAPID keys
-VAPID_PUBLIC_KEY=your_public_key
-VAPID_PRIVATE_KEY=your_private_key
+### For Cursor IDE (.cursor/mcp.json)
 
-# Server configuration
-PORT=3000
-
-# Optional: Use ngrok for external access
-NGROK_DOMAIN=your-ngrok-domain.ngrok.io
-```
-
-VAPID keys are automatically generated on first startup if not provided.
-
-## ngrok Integration
-
-### Method 1: Using ngrok.yml (Recommended)
-
-1. Edit `ngrok.yml` in the project root:
-```yaml
-version: 3
-
-agent:
-  authtoken: your_ngrok_authtoken
-  connect_timeout: 30s
-
-endpoints:
-- name: notify
-  url: https://your-domain.ngrok-free.app
-  upstream:
-    url: 3000
-```
-
-2. Start ngrok with config:
-```bash
-ngrok start --config=/path/to/mcp-browser-notify/ngrok.yml notify
-```
-
-3. Set environment variable:
-```bash
-NGROK_DOMAIN=your-domain.ngrok-free.app npm run dev
-```
-
-### Method 2: Direct Command
-
-1. Set up your ngrok account and domain
-2. Set the `NGROK_DOMAIN` environment variable
-3. Start ngrok: `ngrok http --domain=your-domain.ngrok.io 3000`
-4. The application will automatically use the ngrok URL for notifications
-
-## Complete Setup Guide
-
-### Option 1: Direct Node.js Execution
-
-#### Step 1: Edit ngrok.yml
-Edit `ngrok.yml` in the project root:
-```yaml
-version: 3
-
-agent:
-  authtoken: your_ngrok_authtoken
-  connect_timeout: 30s
-
-endpoints:
-- name: notify
-  url: https://your-domain.ngrok-free.app
-  upstream:
-    url: 3000
-```
-
-#### Step 2: Build the application
-```bash
-npm install
-npm run build
-```
-
-#### Step 3: Start ngrok
-```bash
-ngrok start --config=/path/to/mcp-browser-notify/ngrok.yml notify
-```
-
-#### Step 4: Start Node.js server
-```bash
-NGROK_DOMAIN=your-domain.ngrok-free.app npm run dev
-```
-
-#### Step 5: Configure MCP
-Create `.cursor/mcp.json`:
+#### Direct Node.js
 ```json
 {
   "mcp": {
@@ -161,43 +135,20 @@ Create `.cursor/mcp.json`:
       "browser-notify": {
         "command": "node",
         "args": ["dist/index.js"],
-        "cwd": "/path/to/mcp-browser-notify"
+        "cwd": "/path/to/mcp-browser-notify",
+        "env": {
+          "FIREBASE_PROJECT_ID": "your-project-id",
+          "FIREBASE_SERVICE_ACCOUNT_KEY": "{\"type\":\"service_account\",...}",
+          "SUPABASE_URL": "https://your-project.supabase.co",
+          "SUPABASE_ANON_KEY": "your-anon-key"
+        }
       }
     }
   }
 }
 ```
 
-### Option 2: Using Docker
-
-#### Step 1: Edit ngrok.yml
-Edit `ngrok.yml` in the project root:
-```yaml
-version: 3
-
-agent:
-  authtoken: your_ngrok_authtoken
-  connect_timeout: 30s
-
-endpoints:
-- name: notify
-  url: https://your-domain.ngrok-free.app
-  upstream:
-    url: 3000
-```
-
-#### Step 2: Start ngrok
-```bash
-ngrok start --config=/path/to/mcp-browser-notify/ngrok.yml notify
-```
-
-#### Step 3: Start Docker container
-```bash
-docker-compose up -d
-```
-
-#### Step 4: Configure MCP for Docker
-Create `.cursor/mcp.json`:
+#### Docker
 ```json
 {
   "mcp": {
@@ -212,28 +163,59 @@ Create `.cursor/mcp.json`:
 }
 ```
 
-### Example MCP Tool Usage
+## ngrok Integration
 
-```javascript
-// Send notification to specific subscription
-await mcp.callTool('send_notification', {
-  subscriptionId: 'subscription-id-here',
-  message: 'Task completed!'
-});
+Edit `ngrok.yml` to configure remote access:
 
-// Send notification to all subscribers
-await mcp.callTool('send_notification_to_all', {
-  message: 'System maintenance in 5 minutes'
-});
+```yaml
+version: 3
 
-// List all subscriptions
-const subscriptions = await mcp.callTool('list_subscriptions', {});
+agent:
+  authtoken: your_ngrok_authtoken
+  connect_timeout: 30s
 
-// Remove a subscription
-await mcp.callTool('remove_subscription', {
-  subscriptionId: 'subscription-id-here'
-});
+endpoints:
+- name: notify
+  url: https://your-domain.ngrok-free.app
+  upstream:
+    url: 3000
 ```
+
+Start ngrok:
+```bash
+ngrok start --config=./ngrok.yml notify
+NGROK_DOMAIN=your-domain.ngrok-free.app npm run dev
+```
+
+## Health Monitoring
+
+Check application health:
+```bash
+curl http://localhost:3000/health
+curl http://localhost:3000/admin/stats
+```
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Firebase Authentication Errors**
+   - Verify FIREBASE_SERVICE_ACCOUNT_KEY is valid JSON
+   - Check Firebase project permissions
+
+2. **Supabase Connection Issues**
+   - Verify SUPABASE_URL and SUPABASE_ANON_KEY
+   - Ensure database schema is created
+
+3. **FCM Token Issues**
+   - Check Firebase project configuration in frontend
+   - Verify web app is properly configured in Firebase Console
+
+## Security Notes
+
+- Keep service account keys secure
+- Use environment variables for all credentials
+- Database row-level security (RLS) recommended for production
 
 ## Development Commands
 
@@ -289,6 +271,10 @@ docker run -d \
   --name browser-notify-container \
   -p 3000:3000 \
   -e NODE_ENV=production \
+  -e FIREBASE_PROJECT_ID=your-project-id \
+  -e FIREBASE_SERVICE_ACCOUNT_KEY='{"type":"service_account",...}' \
+  -e SUPABASE_URL=https://your-project.supabase.co \
+  -e SUPABASE_ANON_KEY=your-anon-key \
   browser-notify
 ```
 
@@ -298,28 +284,54 @@ docker stop browser-notify-container
 docker rm browser-notify-container
 ```
 
-### Docker with Environment Variables
-
-```bash
-docker run -d \
-  --name browser-notify-container \
-  -p 3000:3000 \
-  -e NODE_ENV=production \
-  -e VAPID_PUBLIC_KEY=your_public_key \
-  -e VAPID_PRIVATE_KEY=your_private_key \
-  -e NGROK_DOMAIN=your-domain.ngrok-free.app \
-  browser-notify
-```
-
 ## Project Structure
 
 - `src/index.ts`: Main server file (Express + MCP integration)
-- `src/services/NotificationService.ts`: Web push notification management class
+- `src/services/NotificationService.ts`: FCM-based notification management class
 - `src/mcp/MCPServer.ts`: MCP server implementation
 - `public/`: Static files for web browser
   - `index.html`: Notification registration web page
   - `app.js`: Frontend JavaScript
-  - `sw.js`: Service Worker (for receiving push notifications)
+  - `sw.js`: Service Worker (for Firebase Messaging)
+
+## Example MCP Tool Usage
+
+```javascript
+// Send notification to specific user
+await mcp.callTool('send_notification', {
+  userId: 'user123',
+  message: 'Task completed!',
+  title: 'Notification'
+});
+
+// Send notification to all users
+await mcp.callTool('send_notification_to_all', {
+  message: 'System maintenance in 5 minutes'
+});
+
+// Register a new user
+await mcp.callTool('register_user', {
+  userId: 'user123',
+  fcmToken: 'fcm-token-here',
+  deviceType: 'desktop'
+});
+
+// List all subscriptions
+const subscriptions = await mcp.callTool('list_subscriptions', {});
+
+// List subscriptions for specific user
+const userSubs = await mcp.callTool('list_subscriptions', {
+  userId: 'user123'
+});
+
+// Remove a subscription
+await mcp.callTool('remove_subscription', {
+  subscriptionId: 'subscription-id-here'
+});
+
+// Get statistics
+const stats = await mcp.callTool('get_user_stats', {});
+```
 
 ## License
 

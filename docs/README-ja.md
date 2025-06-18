@@ -1,17 +1,61 @@
 # MCP Browser Notify
 
-WebプッシュNOTIFICATION方式でユーザーに通知を送信するMCPアプリです。
+Firebase Cloud Messaging (FCM) を使用してユーザーにWebプッシュ通知を送信するMCPアプリです。
 
 ## 機能
 
-- 🔔 **通知登録**: Webブラウザでプッシュ通知の許諾取得
+- 🔔 **通知登録**: WebブラウザでFCMトークン取得とユーザー登録
 - 📱 **マルチデバイス対応**: デスクトップ・モバイル両対応
-- 🚀 **即座の通知送信**: MCPツール経由での通知送信
-- 🛠️ **管理機能**: 登録・解除・一覧表示
+- 👤 **ユーザー管理**: ユーザーIDベースの通知管理
+- 🚀 **即座の通知送信**: 6つのMCPツール経由での通知送信
+- 🗄️ **永続化**: Supabaseデータベースでの登録情報管理
+
+## 前提条件
+
+### Firebase プロジェクトの設定
+1. [Firebase Console](https://console.firebase.google.com/) でプロジェクトを作成
+2. Cloud Messaging を有効化
+3. Webアプリを追加してFirebase設定を取得
+4. サービスアカウントキーを生成
+
+### Supabase データベースの設定
+1. [Supabase](https://supabase.com/) でプロジェクトを作成
+2. 以下のテーブルを作成:
+
+```sql
+CREATE TABLE subscriptions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id TEXT NOT NULL,
+  fcm_token TEXT NOT NULL,
+  device_type TEXT CHECK (device_type IN ('desktop', 'mobile')) DEFAULT 'desktop',
+  device_info JSONB DEFAULT '{}',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  last_used TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- インデックス作成
+CREATE INDEX idx_subscriptions_user_id ON subscriptions(user_id);
+CREATE INDEX idx_subscriptions_fcm_token ON subscriptions(fcm_token);
+```
+
+## 環境変数
+
+`.env` ファイルを作成:
+```bash
+# Firebase設定（必須）
+FIREBASE_PROJECT_ID=your-project-id
+FIREBASE_SERVICE_ACCOUNT_KEY={"type":"service_account","project_id":"your-project-id",...}
+
+# Supabase設定（必須）
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your-anon-key
+
+# オプション
+PORT=3000
+NGROK_DOMAIN=your-domain.ngrok-free.app
+```
 
 ## クイックスタート
-
-以下のいずれかの方法を選択してください:
 
 ### 方法A: 直接Node.js実行
 
@@ -43,166 +87,47 @@ docker-compose up -d
 
 ## MCPツール
 
-このアプリは以下の4つのMCPツールを提供します:
+このアプリは以下の6つのMCPツールを提供します:
 
-- `send_notification`: 特定の登録IDに通知送信
-- `send_notification_to_all`: 全登録デバイスに一斉通知
-- `list_subscriptions`: 登録済み通知の一覧表示
-- `remove_subscription`: 通知登録の削除
+### 通知送信ツール
+- **`send_notification`**: 特定ユーザーに通知送信
+  - パラメータ: `userId`, `message`, `title` (オプション)
+- **`send_notification_to_all`**: 全登録ユーザーに一斉通知
+  - パラメータ: `message`, `title` (オプション)
+
+### ユーザー管理ツール
+- **`register_user`**: FCMトークンでユーザー登録
+  - パラメータ: `userId`, `fcmToken`, `deviceType`, `deviceInfo` (オプション)
+- **`list_subscriptions`**: 登録済み通知の一覧表示（ユーザーフィルタ可）
+  - パラメータ: `userId` (オプション)
+- **`remove_subscription`**: 通知登録の削除
+  - パラメータ: `subscriptionId`
+
+### 統計ツール
+- **`get_user_stats`**: ユーザーと登録統計の取得
+  - 戻り値: ユーザー数、登録数、デバイス種別内訳
 
 ## 使用方法
 
-1. Webページで「通知を許可する」をクリック
-2. ブラウザの通知許可ダイアログで「許可」を選択
-3. 登録完了後、MCPツールから通知送信可能
-4. テスト通知でも動作確認できます
+1. WebページでユーザーIDを入力
+2. 「通知を許可する」をクリック
+3. ブラウザの通知許可ダイアログで「許可」を選択
+4. FCMトークンが自動取得され、データベースに保存
+5. MCPツールから通知送信可能
 
 ## 技術スタック
 
 - **Backend**: Node.js + Express + TypeScript
-- **Push Notifications**: web-push (VAPID)
+- **Push Notifications**: Firebase Cloud Messaging (FCM)
+- **Database**: Supabase PostgreSQL
 - **MCP Integration**: @modelcontextprotocol/sdk
-- **Frontend**: Vanilla JavaScript + Service Worker
+- **Frontend**: Firebase SDK + Service Worker
 
-## 環境変数
+## MCP設定
 
-```bash
-# オプション: 既存のVAPIDキーを使用
-VAPID_PUBLIC_KEY=your_public_key
-VAPID_PRIVATE_KEY=your_private_key
-PORT=3000
-```
+### Cursor IDE用 (.cursor/mcp.json)
 
-初回起動時にVAPIDキーが自動生成されます。
-
-## ngrok連携
-
-### 方法1: ngrok.yml使用（推奨）
-
-1. プロジェクトルートの`ngrok.yml`を編集:
-```yaml
-version: 3
-
-agent:
-  authtoken: your_ngrok_authtoken
-  connect_timeout: 30s
-
-endpoints:
-- name: notify
-  url: https://your-domain.ngrok-free.app
-  upstream:
-    url: 3000
-```
-
-2. 設定ファイルでngrokを起動:
-```bash
-ngrok start --config=/path/to/mcp-browser-notify/ngrok.yml notify
-```
-
-3. 環境変数を設定:
-```bash
-NGROK_DOMAIN=your-domain.ngrok-free.app npm run dev
-```
-
-### 方法2: 直接コマンド
-
-1. ngrokアカウントとドメインを設定
-2. `NGROK_DOMAIN`環境変数を設定
-3. ngrokを起動: `ngrok http --domain=your-domain.ngrok.io 3000`
-4. アプリケーションが自動的にngrok URLを使用
-
-## Dockerサポート
-
-### Docker Compose使用（推奨）
-
-1. コンテナをビルドして起動:
-```bash
-docker-compose up -d
-```
-
-2. ログを確認:
-```bash
-docker-compose logs -f browser-notify
-```
-
-3. コンテナを停止:
-```bash
-docker-compose down
-```
-
-### Docker直接使用
-
-1. イメージをビルド:
-```bash
-docker build -t browser-notify .
-```
-
-2. コンテナを実行:
-```bash
-docker run -d \
-  --name browser-notify-container \
-  -p 3000:3000 \
-  -e NODE_ENV=production \
-  browser-notify
-```
-
-3. 停止と削除:
-```bash
-docker stop browser-notify-container
-docker rm browser-notify-container
-```
-
-### 環境変数付きDocker実行
-
-```bash
-docker run -d \
-  --name browser-notify-container \
-  -p 3000:3000 \
-  -e NODE_ENV=production \
-  -e VAPID_PUBLIC_KEY=your_public_key \
-  -e VAPID_PRIVATE_KEY=your_private_key \
-  -e NGROK_DOMAIN=your-domain.ngrok-free.app \
-  browser-notify
-```
-
-## 完全セットアップガイド
-
-### オプション1: 直接Node.js実行
-
-#### ステップ1: ngrok.ymlを編集
-プロジェクトルートの`ngrok.yml`を編集:
-```yaml
-version: 3
-
-agent:
-  authtoken: your_ngrok_authtoken
-  connect_timeout: 30s
-
-endpoints:
-- name: notify
-  url: https://your-domain.ngrok-free.app
-  upstream:
-    url: 3000
-```
-
-#### ステップ2: アプリケーションのビルド
-```bash
-npm install
-npm run build
-```
-
-#### ステップ3: ngrokを起動
-```bash
-ngrok start --config=/path/to/mcp-browser-notify/ngrok.yml notify
-```
-
-#### ステップ4: Node.jsサーバーを起動
-```bash
-NGROK_DOMAIN=your-domain.ngrok-free.app npm run dev
-```
-
-#### ステップ5: MCPを設定
-`.cursor/mcp.json`を作成:
+#### 直接Node.js実行
 ```json
 {
   "mcp": {
@@ -210,43 +135,20 @@ NGROK_DOMAIN=your-domain.ngrok-free.app npm run dev
       "browser-notify": {
         "command": "node",
         "args": ["dist/index.js"],
-        "cwd": "/path/to/mcp-browser-notify"
+        "cwd": "/path/to/mcp-browser-notify",
+        "env": {
+          "FIREBASE_PROJECT_ID": "your-project-id",
+          "FIREBASE_SERVICE_ACCOUNT_KEY": "{\"type\":\"service_account\",...}",
+          "SUPABASE_URL": "https://your-project.supabase.co",
+          "SUPABASE_ANON_KEY": "your-anon-key"
+        }
       }
     }
   }
 }
 ```
 
-### オプション2: Docker使用
-
-#### ステップ1: ngrok.ymlを編集
-プロジェクトルートの`ngrok.yml`を編集:
-```yaml
-version: 3
-
-agent:
-  authtoken: your_ngrok_authtoken
-  connect_timeout: 30s
-
-endpoints:
-- name: notify
-  url: https://your-domain.ngrok-free.app
-  upstream:
-    url: 3000
-```
-
-#### ステップ2: ngrokを起動
-```bash
-ngrok start --config=/path/to/mcp-browser-notify/ngrok.yml notify
-```
-
-#### ステップ3: Dockerコンテナを起動
-```bash
-docker-compose up -d
-```
-
-#### ステップ4: Docker用MCPを設定
-`.cursor/mcp.json`を作成:
+#### Docker使用
 ```json
 {
   "mcp": {
@@ -260,3 +162,93 @@ docker-compose up -d
   }
 }
 ```
+
+## ngrok連携
+
+ngrok.ymlを編集してリモートアクセスを設定:
+
+```yaml
+version: 3
+
+agent:
+  authtoken: your_ngrok_authtoken
+  connect_timeout: 30s
+
+endpoints:
+- name: notify
+  url: https://your-domain.ngrok-free.app
+  upstream:
+    url: 3000
+```
+
+ngrokを起動:
+```bash
+ngrok start --config=./ngrok.yml notify
+NGROK_DOMAIN=your-domain.ngrok-free.app npm run dev
+```
+
+## ヘルスモニタリング
+
+アプリケーションの状態確認:
+```bash
+curl http://localhost:3000/health
+curl http://localhost:3000/admin/stats
+```
+
+## トラブルシューティング
+
+### よくある問題
+
+1. **Firebase認証エラー**
+   - FIREBASE_SERVICE_ACCOUNT_KEYが有効なJSONか確認
+   - Firebaseプロジェクトの権限を確認
+
+2. **Supabase接続エラー**
+   - SUPABASE_URLとSUPABASE_ANON_KEYを確認
+   - データベーススキーマが作成されているか確認
+
+3. **FCMトークンエラー**
+   - フロントエンドのFirebaseプロジェクト設定を確認
+   - Firebase ConsoleでWebアプリが正しく設定されているか確認
+
+## セキュリティ注意事項
+
+- サービスアカウントキーは安全に保管
+- すべての認証情報は環境変数で管理
+- 本番環境ではデータベースの行レベルセキュリティ(RLS)を推奨
+
+## 開発コマンド
+
+```bash
+# 依存関係のインストール
+npm install
+
+# 開発サーバー起動（ホットリロード）
+npm run dev
+
+# ビルド
+npm run build
+
+# 本番環境での実行
+npm run start
+
+# リント
+npm run lint
+
+# テスト実行
+npm test
+```
+
+## プロジェクト構造
+
+- `src/index.ts`: メインサーバーファイル（Express + MCP統合）
+- `src/services/NotificationService.ts`: FCMベース通知管理クラス
+- `src/mcp/MCPServer.ts`: MCPサーバーの実装
+- `public/`: Webブラウザ用の静的ファイル
+  - `index.html`: 通知登録用のWebページ
+  - `app.js`: フロントエンドJavaScript
+  - `sw.js`: Service Worker（Firebase Messaging用）
+
+## ライセンス
+
+MIT
