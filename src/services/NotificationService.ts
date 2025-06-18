@@ -78,7 +78,9 @@ export class NotificationService {
       }
 
       try {
-        const serviceAccount: ServiceAccount = JSON.parse(serviceAccountKey);
+        // Trim whitespace and ensure proper JSON format
+        const cleanedKey = serviceAccountKey.trim();
+        const serviceAccount: ServiceAccount = JSON.parse(cleanedKey);
         
         initializeApp({
           credential: cert(serviceAccount),
