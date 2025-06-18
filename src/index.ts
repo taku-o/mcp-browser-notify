@@ -90,11 +90,6 @@ app.post('/api/test-notification', async (req, res) => {
   }
 });
 
-// VAPIDキー取得エンドポイント（後方互換性のため）
-app.get('/api/vapid-key', (req, res) => {
-  // FCMではVAPIDキーは使用しないが、フロントエンドとの互換性のため
-  res.json({ vapidKey: null, message: 'FCM implementation does not use VAPID keys' });
-});
 
 // サーバー情報取得エンドポイント
 app.get('/server-info', (req, res) => {
@@ -104,43 +99,6 @@ app.get('/server-info', (req, res) => {
     isNgrok: !!NGROK_DOMAIN,
     port: PORT,
     version: '2.0.0-fcm'
-  });
-});
-
-// === LEGACY endpoints for backward compatibility ===
-
-// 従来のsubscribeエンドポイント（廃止予定）
-app.post('/subscribe', async (req, res) => {
-  console.warn('DEPRECATED: /subscribe endpoint is deprecated. Use /api/register instead.');
-  res.status(410).json({ 
-    success: false, 
-    error: 'This endpoint is deprecated. Please update your client to use /api/register with FCM tokens.' 
-  });
-});
-
-// 従来のnotifyエンドポイント（廃止予定）
-app.post('/notify', async (req, res) => {
-  console.warn('DEPRECATED: /notify endpoint is deprecated. Use /api/test-notification instead.');
-  res.status(410).json({ 
-    success: false, 
-    error: 'This endpoint is deprecated. Please update your client to use /api/test-notification.' 
-  });
-});
-
-// 従来のunsubscribeエンドポイント（廃止予定）
-app.delete('/unsubscribe/:subscriptionId', async (req, res) => {
-  console.warn('DEPRECATED: /unsubscribe endpoint is deprecated. Use /api/unsubscribe instead.');
-  res.status(410).json({ 
-    success: false, 
-    error: 'This endpoint is deprecated. Please update your client to use /api/unsubscribe.' 
-  });
-});
-
-// 従来のvapid-public-keyエンドポイント（廃止予定）
-app.get('/vapid-public-key', (req, res) => {
-  console.warn('DEPRECATED: /vapid-public-key endpoint is deprecated.');
-  res.status(410).json({ 
-    error: 'VAPID keys are not used in FCM implementation. Please update your client.' 
   });
 });
 

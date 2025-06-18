@@ -146,15 +146,7 @@ class FCMNotificationManager {
             // FCMトークンを取得
             this.showStatus('FCMトークンを取得しています...', 'info');
             
-            try {
-                this.fcmToken = await window.getToken(this.messaging, {
-                    vapidKey: await this.getVapidKey() // VAPIDキーも必要
-                });
-            } catch (tokenError) {
-                console.warn('VAPID key error, trying without:', tokenError);
-                // VAPIDキーなしで試行
-                this.fcmToken = await window.getToken(this.messaging);
-            }
+            this.fcmToken = await window.getToken(this.messaging);
 
             if (!this.fcmToken) {
                 throw new Error('FCMトークンの取得に失敗しました');
@@ -204,17 +196,6 @@ class FCMNotificationManager {
         }
     }
 
-    async getVapidKey() {
-        try {
-            const response = await fetch('/api/vapid-key');
-            if (!response.ok) return null;
-            const data = await response.json();
-            return data.vapidKey;
-        } catch (error) {
-            console.warn('VAPID key not available:', error);
-            return null;
-        }
-    }
 
     async registerServiceWorker() {
         if (!('serviceWorker' in navigator)) {

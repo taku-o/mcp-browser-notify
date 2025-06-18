@@ -338,9 +338,4 @@ export class NotificationService {
     return data?.length || 0;
   }
 
-  // For backward compatibility with existing web-push implementation
-  public getVapidPublicKey(): string {
-    console.warn('getVapidPublicKey() is deprecated. FCM uses different authentication.');
-    return 'FCM_BASED_IMPLEMENTATION';
-  }
 }

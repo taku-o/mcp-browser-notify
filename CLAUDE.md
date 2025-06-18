@@ -61,52 +61,48 @@ npm test
 
 ## 重要なファイル
 
-- **NotificationService.ts**: VAPIDキー管理、通知の送信・登録・削除
-- **MCPServer.ts**: 4つのMCPツール提供（send_notification, send_notification_to_all, list_subscriptions, remove_subscription）
-- **Service Worker**: ブラウザでのプッシュ通知受信処理
+- **NotificationService.ts**: FCMベース通知管理、データベース連携、ユーザー管理
+- **MCPServer.ts**: 6つのMCPツール提供（send_notification, send_notification_to_all, register_user, list_subscriptions, remove_subscription, get_user_stats）
+- **Service Worker**: Firebase Messaging Service Workerによるプッシュ通知受信処理
 
 ## 環境変数
 
 ```bash
-# オプション: 既存のVAPIDキーを使用する場合
-VAPID_PUBLIC_KEY=your_public_key
-VAPID_PRIVATE_KEY=your_private_key
+# 必須: Firebase設定
+FIREBASE_PROJECT_ID=your-project-id
+FIREBASE_SERVICE_ACCOUNT_KEY={"type":"service_account",...}
+
+# 必須: Supabase設定
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your-anon-key
+
+# オプション
 PORT=3000
+NGROK_DOMAIN=your-domain.ngrok-free.app
 ```
 
-## 改善要件（rules/01-updates-projects.mdc）
+## 設定と運用
 
-- **ドキュメント**: 英語版README作成（docs/ディレクトリに配置）
-- **MCP設定**: mcp.json設定例とMCP呼び出し例をREADMEに追加
-- **ngrok対応**: ngrokドメイン利用でlocalhost以外での通知対応
-- **UI改善**: QRコード共有機能の削除（該当メッセージの除去）
+FCMベースの通知システムとして以下の機能を提供：
+- Firebase Cloud Messaging による通知配信
+- Supabase データベースによる永続化
+- ユーザーIDベースの通知管理
+- 複数デバイス対応（デスクトップ・モバイル）
+- ngrok対応によるリモートアクセス
 
-## 改善要件（rules/02-updates-projects.mdc）
+## アーキテクチャ
 
-- **ngrok改善**: ngrok.yml設定ファイルとngrok利用手順の詳細化
-- **Dockerサポート**: Dockerfile、docker-compose.yml追加とDocker実行手順
+### 技術スタック
+- **通知**: Firebase Cloud Messaging (FCM)
+- **データベース**: Supabase PostgreSQL
+- **フロントエンド**: Firebase SDK + Service Worker
+- **バックエンド**: Node.js + Express + Firebase Admin SDK
+- **MCP**: 6つのツールでAI連携
 
-## 改善要件（rules/03-direct-docker.mdc）
-
-- **利用手順の分離**: 直接Node実行とDocker実行の手順を明確に分けて記載
-- **具体的な手順**: ngrok設定→サーバー起動→MCP設定の流れを両方式で詳述
-
-## リファクタリング計画（rules/04-refactoring-plan.mdc）
-
-プログラムの大幅な作り替えを実行中です：
-
-### 新仕様要件
-- **実行環境**: Cursor AIから起動するMCPツールとして動作
-- **通知対象**: PC、Desktop Mac、iPhone、Android
-- **主要機能**: AIからの呼び出しでユーザーにメッセージ送信
-- **外部サービス**: Firebase Cloud Messaging (FCM) 利用
-- **データ管理**: MongoDB Atlas / Supabase でSubscription情報管理
-
-### 提案仕様（PC/Desktop Mac）
-- **サービス**: FCMのWebプッシュ通知
-- **実装**: Webサイトでプッシュ許可取得 → DB保存 → AI呼び出し時に通知送信
-- **メリット**: ブラウザ終了後も通知可能、低コスト、開発コスト低
-- **デメリット**: ユーザー許可必要、iOS Safari要PWA化
+### システム構成
+- **ユーザー登録**: WebブラウザでFCMトークン取得 → Supabase保存
+- **通知送信**: AI → MCPツール → Firebase Admin SDK → FCM → ユーザーデバイス
+- **対応デバイス**: PC、Mac、iPhone、Android（ブラウザベース）
 
 ## 開発手順（rules/05-how-to-proceed-with-development.mdc）
 

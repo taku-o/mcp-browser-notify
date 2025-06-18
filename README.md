@@ -1,4 +1,4 @@
-# MCP Browser Notify (FCM Edition)
+# MCP Browser Notify
 
 A Model Context Protocol (MCP) application for sending web push notifications using Firebase Cloud Messaging (FCM).
 
@@ -144,26 +144,9 @@ docker-compose up -d
 }
 ```
 
-## 🔄 Migration from v1.x
-
-If you're upgrading from the VAPID-based version:
-
-1. **Breaking Changes**:
-   - VAPID endpoints are deprecated
-   - New FCM-based registration required
-   - Database persistence replaces in-memory storage
-
-2. **Legacy Endpoint Support**:
-   - Old endpoints return 410 (Gone) with migration instructions
-   - Use new `/api/*` endpoints
-
-3. **User Registration**:
-   - Users must re-register with FCM tokens
-   - User ID system replaces subscription ID management
-
 ## 📱 Frontend Integration
 
-The web interface now supports:
+The web interface supports:
 - User ID management
 - Firebase SDK integration
 - FCM token generation
@@ -177,10 +160,6 @@ curl http://localhost:3000/health
 curl http://localhost:3000/admin/stats
 ```
 
-## 📚 Documentation
-
-- [English Documentation](./docs/README-en.md)
-- [日本語ドキュメント](./docs/README-ja.md)
 
 ## 🐛 Troubleshooting
 
