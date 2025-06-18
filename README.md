@@ -30,6 +30,32 @@ PORT=3000
 NGROK_DOMAIN=your-domain.ngrok-free.app
 ```
 
+### Frontend Firebase Configuration
+Update the `firebaseConfig` object in the following files with your actual Firebase project settings:
+
+1. **`public/index.html`** (around line 215)
+2. **`public/sw.js`** (around line 8)  
+3. **`public/firebase-messaging-sw.js`** (around line 8)
+
+Get your Firebase configuration from:
+1. Open [Firebase Console](https://console.firebase.google.com/)
+2. Go to Project Settings → General tab
+3. In "Your apps" section, select your web app
+4. Choose "Firebase SDK snippet" → "Config"
+5. Copy the `firebaseConfig` object and replace the placeholder values in all three files
+
+Example configuration:
+```javascript
+const firebaseConfig = {
+  apiKey: "AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+  authDomain: "your-project.firebaseapp.com",
+  projectId: "your-project-id",
+  storageBucket: "your-project.appspot.com",
+  messagingSenderId: "123456789012",
+  appId: "1:123456789012:web:abcdef1234567890abcdef"
+};
+```
+
 ### Option A: Direct Node.js
 ```bash
 npm install

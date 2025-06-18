@@ -55,6 +55,32 @@ PORT=3000
 NGROK_DOMAIN=your-domain.ngrok-free.app
 ```
 
+### フロントエンドFirebase設定
+以下のファイルの`firebaseConfig`オブジェクトを実際のFirebaseプロジェクト設定に更新してください：
+
+1. **`public/index.html`** (215行目付近)
+2. **`public/sw.js`** (8行目付近)
+3. **`public/firebase-messaging-sw.js`** (8行目付近)
+
+Firebase設定の取得方法：
+1. [Firebase Console](https://console.firebase.google.com/) を開く
+2. プロジェクト設定 → 全般タブ
+3. 「マイアプリ」セクションでWebアプリを選択
+4. 「Firebase SDK snippet」→「構成」を選択
+5. `firebaseConfig`オブジェクトをコピーして、3つのファイルの値を置き換え
+
+設定例：
+```javascript
+const firebaseConfig = {
+  apiKey: "AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+  authDomain: "your-project.firebaseapp.com",
+  projectId: "your-project-id",
+  storageBucket: "your-project.appspot.com",
+  messagingSenderId: "123456789012",
+  appId: "1:123456789012:web:abcdef1234567890abcdef"
+};
+```
+
 ## クイックスタート
 
 ### 方法A: 直接Node.js実行
