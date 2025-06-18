@@ -56,6 +56,19 @@ const firebaseConfig = {
 };
 ```
 
+### VAPID Key Configuration
+For FCM token generation, you also need to update the VAPID key in `public/app.js`:
+
+1. In Firebase Console, go to Project Settings → Cloud Messaging tab
+2. Under "Web configuration", generate a new key pair or copy the existing "Key pair"
+3. Replace the vapidKey value in `public/app.js` (around line 147):
+
+```javascript
+this.fcmToken = await window.getToken(this.messaging, {
+    vapidKey: 'YOUR_VAPID_KEY_FROM_FIREBASE_CONSOLE'
+});
+```
+
 ### Option A: Direct Node.js
 ```bash
 npm install

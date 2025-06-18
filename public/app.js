@@ -140,13 +140,13 @@ class FCMNotificationManager {
                 throw new Error('通知の許可が拒否されました');
             }
 
-            // Service Worker を登録
-            await this.registerServiceWorker();
-
-            // FCMトークンを取得
+            // FCMトークンを取得（Service Workerは自動登録される）
             this.showStatus('FCMトークンを取得しています...', 'info');
             
-            this.fcmToken = await window.getToken(this.messaging);
+            // VAPIDキーを設定してFCMトークンを取得
+            this.fcmToken = await window.getToken(this.messaging, {
+                vapidKey: 'BK4dMBCnZXZWVZCnUZyMp7mP8rUMy8sJDsKkVsM8yJoWnS8VQZJl4gDJsUt8VQZJl4gDJsUt8VQZJl4gDJsUt8'
+            });
 
             if (!this.fcmToken) {
                 throw new Error('FCMトークンの取得に失敗しました');
@@ -197,32 +197,6 @@ class FCMNotificationManager {
     }
 
 
-    async registerServiceWorker() {
-        if (!('serviceWorker' in navigator)) {
-            throw new Error('Service Worker がサポートされていません');
-        }
-
-        if (!navigator.serviceWorker.controller) {
-            const registration = await navigator.serviceWorker.register('/sw.js');
-            console.log('Service Worker registered:', registration);
-            
-            await new Promise((resolve, reject) => {
-                const timeout = setTimeout(() => reject(new Error('Service Worker の登録がタイムアウトしました')), 10000);
-                
-                if (registration.installing) {
-                    registration.installing.addEventListener('statechange', function() {
-                        if (this.state === 'activated') {
-                            clearTimeout(timeout);
-                            resolve();
-                        }
-                    });
-                } else if (registration.active) {
-                    clearTimeout(timeout);
-                    resolve();
-                }
-            });
-        }
-    }
 
     async unsubscribe() {
         try {
