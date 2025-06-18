@@ -56,6 +56,7 @@ npm test
 - `rules/01-updates-projects.mdc`: プロジェクト改善要件（英語README、MCP設定、ngrok対応、UI改善）
 - `rules/02-updates-projects.mdc`: プロジェクト改善要件（ngrok改善、Dockerサポート）
 - `rules/03-direct-docker.mdc`: 利用手順の改善要件（直接Node実行とDocker実行の分離記載）
+- `rules/05-how-to-proceed-with-development.mdc`: 開発手順ガイドライン（Git作業フロー）
 
 ## 重要なファイル
 
@@ -88,3 +89,13 @@ PORT=3000
 
 - **利用手順の分離**: 直接Node実行とDocker実行の手順を明確に分けて記載
 - **具体的な手順**: ngrok設定→サーバー起動→MCP設定の流れを両方式で詳述
+
+## 開発手順（rules/05-how-to-proceed-with-development.mdc）
+
+開発作業は以下のGitワークフローに従って実行します：
+
+1. **環境確認**: `git status`で現在の環境がクリーンであることを確認
+2. **作業ブランチ作成**: `git switch -c [branch-name]`でmasterから新しい作業ブランチを作成
+3. **修正実装**: 指示された修正を実装し、完了後に作業ブランチにcommit
+4. **作業完了**: 作業完了報告時は作業ブランチの状態のまま
+5. **継続作業**: 追加修正は既存の作業ブランチで実行（別タスクの場合は新ブランチ作成）
