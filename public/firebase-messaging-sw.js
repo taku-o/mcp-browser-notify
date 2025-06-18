@@ -1,10 +1,11 @@
-// Firebase Messaging Service Worker for FCM notifications
+// Firebase Messaging Service Worker
+// This file is required by Firebase Cloud Messaging
 
 // Firebase SDKをインポート
 importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
 
-// Firebase設定
+// Firebase設定（実際のプロジェクト設定に変更してください）
 const firebaseConfig = {
     apiKey: "AIzaSyDX1234567890abcdefghijklmnopqrstuvwxyz",
     authDomain: "mcp-browser-notify.firebaseapp.com",
@@ -19,11 +20,11 @@ try {
     firebase.initializeApp(firebaseConfig);
     const messaging = firebase.messaging();
     
-    console.log('Firebase messaging initialized in service worker');
+    console.log('Firebase messaging initialized in firebase-messaging-sw.js');
     
     // バックグラウンドメッセージのハンドリング
     messaging.onBackgroundMessage((payload) => {
-        console.log('Background message received:', payload);
+        console.log('Background message received in firebase-messaging-sw.js:', payload);
         
         const { title, body, icon, data } = payload.notification || {};
         const notificationTitle = title || 'MCP Browser Notify';
@@ -50,61 +51,12 @@ try {
     });
     
 } catch (error) {
-    console.error('Failed to initialize Firebase in service worker:', error);
+    console.error('Failed to initialize Firebase in firebase-messaging-sw.js:', error);
 }
-
-// 通常のpushイベントハンドラ（FCMがない場合のフォールバック）
-self.addEventListener('push', function(event) {
-    console.log('Push event received (fallback):', event);
-    
-    if (!event.data) {
-        return;
-    }
-
-    try {
-        const data = event.data.json();
-        const options = {
-            body: data.body,
-            icon: data.icon || '/icon-192x192.png',
-            badge: data.badge || '/badge-72x72.png',
-            timestamp: data.timestamp || Date.now(),
-            requireInteraction: false,
-            data: data.data || {},
-            actions: [
-                {
-                    action: 'view',
-                    title: '確認'
-                },
-                {
-                    action: 'close',
-                    title: '閉じる'
-                }
-            ]
-        };
-
-        event.waitUntil(
-            self.registration.showNotification(data.title || 'MCP Browser Notify', options)
-        );
-    } catch (error) {
-        console.error('Push event error:', error);
-        
-        const fallbackOptions = {
-            body: event.data.text() || '新しい通知があります',
-            icon: '/icon-192x192.png',
-            badge: '/badge-72x72.png',
-            timestamp: Date.now(),
-            requireInteraction: false
-        };
-        
-        event.waitUntil(
-            self.registration.showNotification('MCP Browser Notify', fallbackOptions)
-        );
-    }
-});
 
 // 通知クリックイベントのハンドリング
 self.addEventListener('notificationclick', function(event) {
-    console.log('Notification click received:', event.notification.title, event.action);
+    console.log('Notification click received in firebase-messaging-sw.js:', event.notification.title, event.action);
     
     event.notification.close();
 
@@ -137,32 +89,17 @@ self.addEventListener('notificationclick', function(event) {
 
 // 通知が閉じられた時のイベント
 self.addEventListener('notificationclose', function(event) {
-    console.log('Notification closed:', event.notification.title);
-    
-    // 必要に応じて分析用のイベントを送信
-    // analytics.track('notification_closed', { title: event.notification.title });
+    console.log('Notification closed in firebase-messaging-sw.js:', event.notification.title);
 });
 
 // Service Worker インストール時
 self.addEventListener('install', function(event) {
-    console.log('Service Worker installing');
+    console.log('Firebase messaging service worker installing');
     self.skipWaiting();
 });
 
 // Service Worker アクティベート時
 self.addEventListener('activate', function(event) {
-    console.log('Service Worker activating');
+    console.log('Firebase messaging service worker activating');
     event.waitUntil(self.clients.claim());
-});
-
-// メッセージハンドラ（メインスレッドからの通信用）
-self.addEventListener('message', function(event) {
-    console.log('Message received in service worker:', event.data);
-    
-    if (event.data && event.data.type === 'GET_VERSION') {
-        event.ports[0].postMessage({
-            version: '2.0.0-fcm',
-            firebase: typeof firebase !== 'undefined'
-        });
-    }
 });
