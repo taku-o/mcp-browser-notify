@@ -73,8 +73,7 @@ npm test
   - `app.js`: フロントエンドJavaScript
   - `sw.js`: Service Worker（プッシュ通知受信用）
 - `rules/01-project-overview.mdc`: プロジェクト概要と技術スタック
-- `rules/02-development-workflow.mdc`: Container-Use開発ワークフローの手順
-- `rules/03-documentation-requirements.mdc`: ドキュメント更新時のチェックリスト
+- `rules/02-documentation-requirements.mdc`: ドキュメント更新時のチェックリスト
 
 ## 重要なファイル
 
@@ -121,9 +120,23 @@ FCMベースの通知システムとして以下の機能を提供：
 - **通知送信**: AI → MCPツール → Firebase Admin SDK → FCM → ユーザーデバイス
 - **対応デバイス**: PC、Mac、iPhone、Android（ブラウザベース）
 
-## 開発手順（Container-Use環境での開発ワークフロー）
+## 開発手順
 
-### 基本ワークフロー
+### 開発環境の切り替え
+
+プロジェクトでは2つの開発手法を選択可能：
+
+#### Container-Use環境での開発（推奨）
+- **有効化**: `/container-use-on` コマンドを実行
+- すべてのファイル操作、コード作業、シェル操作でContainer-Use環境を使用
+- Git操作も環境が自動処理するため、複雑なプロジェクトに適している
+
+#### 標準ツールでの開発
+- **有効化**: `/container-use-off` コマンドを実行  
+- Claude Codeの標準ツール（Read, Write, Edit, Bash等）を使用
+- 簡単な修正や小規模な作業に適している
+
+### Container-Use環境での開発ワークフロー
 
 1. **環境の作成・確認**: Container-Use環境でプロジェクトを開く
    * `mcp__container-use__environment_open`を使用してプロジェクト環境を作成
