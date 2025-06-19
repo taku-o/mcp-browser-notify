@@ -52,12 +52,9 @@ npm test
   - `index.html`: 通知登録用のWebページ
   - `app.js`: フロントエンドJavaScript
   - `sw.js`: Service Worker（プッシュ通知受信用）
-- `rules/00-project-requirements.mdc`: プロジェクト要件定義（日本語）
-- `rules/01-updates-projects.mdc`: プロジェクト改善要件（英語README、MCP設定、ngrok対応、UI改善）
-- `rules/02-updates-projects.mdc`: プロジェクト改善要件（ngrok改善、Dockerサポート）
-- `rules/03-direct-docker.mdc`: 利用手順の改善要件（直接Node実行とDocker実行の分離記載）
-- `rules/04-refactoring-plan.mdc`: リファクタリング計画（FCMベース実装への移行）
-- `rules/05-how-to-proceed-with-development.mdc`: 開発手順ガイドライン（Git作業フロー）
+- `rules/01-project-overview.mdc`: プロジェクト概要と技術スタック
+- `rules/02-development-workflow.mdc`: Git作業フローの手順
+- `rules/03-documentation-requirements.mdc`: ドキュメント更新時のチェックリスト
 
 ## 重要なファイル
 
