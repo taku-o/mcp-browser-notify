@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "container-use": {
+      "type": "stdio",
+      "command": "/Users/taku.omi/.cursor/local/bin/cu",
+      "args": [
+        "stdio"
+      ],
+      "env": {}
+    }
+  }
+}
