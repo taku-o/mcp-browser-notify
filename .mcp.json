@@ -2,7 +2,7 @@
   "mcpServers": {
     "container-use": {
       "type": "stdio",
-      "command": "~/.cursor/local/bin/cu",
+      "command": "/Users/taku-o/.cursor/local/bin/cu",
       "args": [
         "stdio"
       ],
