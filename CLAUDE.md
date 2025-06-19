@@ -21,6 +21,26 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - プログラミング言語と設計は自由
 - 外部サービスの利用可能
 
+## Container-Use開発環境
+
+**重要**: すべてのファイル操作、コード作業、シェル操作は**必ずContainer-Use環境**を使用して実行する。単純なリクエストや汎用的なリクエストであっても例外なく環境を使用すること。
+
+### Container-Use環境の重要な制約
+
+- **Git CLI禁止**: 環境内でgit cliの直接使用は避ける
+  - 環境ツールがGit操作を自動処理
+  - `.git`の手動変更は環境の整合性を損なう可能性
+
+- **ファイル操作**: 必ず専用ツールを使用
+  - `mcp__container-use__environment_file_read`: ファイル読み取り
+  - `mcp__container-use__environment_file_write`: ファイル書き込み
+  - `mcp__container-use__environment_file_list`: ディレクトリ一覧
+  - `mcp__container-use__environment_file_delete`: ファイル削除
+
+- **コマンド実行**: `mcp__container-use__environment_run_cmd`を使用
+
+- **作業完了時の注意**: 必ずユーザーに`git checkout <branch_name>`でブランチを確認する方法を通知する
+
 ## 開発コマンド
 
 ```bash
@@ -53,7 +73,7 @@ npm test
   - `app.js`: フロントエンドJavaScript
   - `sw.js`: Service Worker（プッシュ通知受信用）
 - `rules/01-project-overview.mdc`: プロジェクト概要と技術スタック
-- `rules/02-development-workflow.mdc`: Git作業フローの手順
+- `rules/02-development-workflow.mdc`: Container-Use開発ワークフローの手順
 - `rules/03-documentation-requirements.mdc`: ドキュメント更新時のチェックリスト
 
 ## 重要なファイル
@@ -101,15 +121,30 @@ FCMベースの通知システムとして以下の機能を提供：
 - **通知送信**: AI → MCPツール → Firebase Admin SDK → FCM → ユーザーデバイス
 - **対応デバイス**: PC、Mac、iPhone、Android（ブラウザベース）
 
-## 開発手順（rules/05-how-to-proceed-with-development.mdc）
+## 開発手順（Container-Use環境での開発ワークフロー）
 
-開発作業は以下のGitワークフローに従って実行します：
+### 基本ワークフロー
 
-1. **環境確認**: `git status`で現在の環境がクリーンであることを確認
-2. **作業ブランチ作成**: `git switch -c [branch-name]`でmasterから新しい作業ブランチを作成
-3. **修正実装**: 指示された修正を実装し、完了後に作業ブランチにcommit
-4. **作業完了**: 作業完了報告時は作業ブランチの状態のまま
-5. **継続作業**: 追加修正は既存の作業ブランチで実行（別タスクの場合は新ブランチ作成）
+1. **環境の作成・確認**: Container-Use環境でプロジェクトを開く
+   * `mcp__container-use__environment_open`を使用してプロジェクト環境を作成
+   * 環境IDを取得し、以降の作業で使用
+
+2. **作業ブランチ作成**: 環境内でmasterから新しい作業ブランチを作成
+   * Gitブランチ名は実装する内容から適当に決める
+   * 作成元のGitブランチはmasterを使用
+   * 環境のGitツールが自動的にGit操作を処理
+
+3. **修正実装**: 環境内で指示された修正を実装
+   * すべてのファイル操作は`mcp__container-use__environment_file_*`ツールを使用
+   * コマンド実行は`mcp__container-use__environment_run_cmd`を使用
+   * 複数回の修正でコミットログが汚くなることは気にしない
+
+4. **作業完了**: 環境内で作業を完了し、作業ブランチの状態を維持
+   * **重要**: ユーザーに`git checkout <branch_name>`でブランチを確認する方法を通知する
+
+5. **継続作業**: 既存の環境と作業ブランチで追加修正を実行
+   * エラー修正などは継続作業として既存ブランチで実行
+   * 別タスクの場合は新しい作業ブランチを作成
 
 ## ドキュメント更新チェックリスト
 
