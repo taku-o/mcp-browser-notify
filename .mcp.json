@@ -1,14 +1,4 @@
 {
-  "mcpServers": {
-    "container-use": {
-      "type": "stdio",
-      "command": "/Users/taku-o/.cursor/local/bin/cu",
-      "args": [
-        "stdio"
-      ],
-      "env": {}
-    }
-  },
   "customCommands": {
     "/container-use-on": {
       "description": "Enable Container-Use development environment for all operations",
