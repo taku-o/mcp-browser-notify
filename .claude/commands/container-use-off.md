@@ -1,7 +1,7 @@
 # Container-Use Off
 
-Disable Container-Use development environment and use standard tools
+Return to standard development tools (Default)
 
 ## Description
 
-From now on, use standard Claude Code tools (Read, Write, Edit, Bash, etc.) instead of Container-Use environment. Work directly with the local filesystem and standard shell commands.
+Return to standard Claude Code tools (Read, Write, Edit, Bash, etc.) for normal development work. This is the default and recommended approach for most development tasks including file operations, code changes, and shell commands.
