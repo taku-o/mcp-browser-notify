@@ -1,7 +1,7 @@
 # Container-Use On
 
-Enable Container-Use development environment for all operations
+Enable Container-Use development environment for special cases
 
 ## Description
 
-From now on, use Container-Use environment for ALL file operations, code work, and shell commands. Create/open environment if needed and use mcp__container-use__* tools exclusively. Follow the Container-Use workflow described in CLAUDE.md.
+Switch to Container-Use environment for specific scenarios requiring environment isolation. This mode uses mcp__container-use__* tools exclusively and provides automatic Git operations. Use this when you need special environment handling - standard development should use the default tools (Read, Write, Edit, Bash).
