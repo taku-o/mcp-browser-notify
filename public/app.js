@@ -4,7 +4,22 @@ class FCMNotificationManager {
         this.userId = localStorage.getItem('userId');
         this.fcmToken = null;
         this.messaging = null;
+        
+        // 無効な登録時刻データをクリーンアップ
+        this.cleanupInvalidTimestamp();
+        
         this.init();
+    }
+
+    cleanupInvalidTimestamp() {
+        const timestamp = localStorage.getItem('subscriptionTime');
+        if (timestamp) {
+            const time = parseInt(timestamp);
+            if (isNaN(time) || time <= 0) {
+                console.log('Invalid timestamp detected, cleaning up...');
+                localStorage.removeItem('subscriptionTime');
+            }
+        }
     }
 
     async init() {
@@ -70,13 +85,14 @@ class FCMNotificationManager {
             console.log('Foreground message received:', payload);
             
             const { title, body } = payload.notification || {};
-            this.showStatus(`通知を受信: ${title || 'MCP Browser Notify'} - ${body}`, 'info');
+            this.showStatus(`通知を受信: ${title || window.AppConfig.notification.defaultTitle} - ${body}`, 'info');
             
             // ブラウザがフォーカスされていない場合は通知を表示
             if (document.hidden && 'Notification' in window && Notification.permission === 'granted') {
-                new Notification(title || 'MCP Browser Notify', {
+                const config = window.AppConfig.notification;
+                new Notification(title || config.defaultTitle, {
                     body: body,
-                    icon: '/icon-192x192.png'
+                    icon: config.defaultIcon
                 });
             }
         });
@@ -95,7 +111,7 @@ class FCMNotificationManager {
                 <strong>登録情報:</strong><br>
                 ユーザーID: ${this.userId}<br>
                 サブスクリプションID: ${this.subscriptionId}<br>
-                登録日時: ${new Date(localStorage.getItem('subscriptionTime') || Date.now()).toLocaleString('ja-JP')}
+                登録日時: ${this.formatDateTime(localStorage.getItem('subscriptionTime'))}
             `;
         } else {
             subscribeBtn.style.display = 'inline-block';
@@ -106,7 +122,7 @@ class FCMNotificationManager {
 
     async displayCurrentUrl() {
         try {
-            const response = await fetch('/server-info');
+            const response = await fetch(window.AppConfig.api.endpoints.serverInfo);
             const serverInfo = await response.json();
             const urlElement = document.getElementById('currentUrl');
             
@@ -163,12 +179,19 @@ class FCMNotificationManager {
                 throw new Error('通知の許可が拒否されました');
             }
 
-            // FCMトークンを取得（Service Workerは自動登録される）
+            // Service Workerを明示的に登録してからFCMトークンを取得
+            this.showStatus('Service Workerを登録しています...', 'info');
+            
+            // Service Worker登録
+            const registration = await navigator.serviceWorker.register('/sw.js');
+            console.log('Service Worker registered:', registration);
+            
             this.showStatus('FCMトークンを取得しています...', 'info');
             
-            // VAPIDキーを設定してFCMトークンを取得
+            // VAPIDキーを設定してFCMトークンを取得（Service Worker指定）
             this.fcmToken = await window.getToken(this.messaging, {
-                vapidKey: 'BK4dMBCnZXZWVZCnUZyMp7mP8rUMy8sJDsKkVsM8yJoWnS8VQZJl4gDJsUt8VQZJl4gDJsUt8VQZJl4gDJsUt8'
+                vapidKey: window.AppConfig.vapidKey,
+                serviceWorkerRegistration: registration
             });
 
             if (!this.fcmToken) {
@@ -187,7 +210,7 @@ class FCMNotificationManager {
             // サーバーに登録
             this.showStatus('サーバーに登録しています...', 'info');
             
-            const response = await fetch('/api/register', {
+            const response = await fetch(window.AppConfig.api.endpoints.register, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -227,7 +250,7 @@ class FCMNotificationManager {
                 throw new Error('登録されていません');
             }
 
-            const response = await fetch(`/api/unsubscribe/${this.subscriptionId}`, {
+            const response = await fetch(`${window.AppConfig.api.endpoints.unsubscribe}/${this.subscriptionId}`, {
                 method: 'DELETE',
             });
 
@@ -263,7 +286,7 @@ class FCMNotificationManager {
             const message = document.getElementById('testMessage').value || 'テスト通知です！';
             const title = document.getElementById('testTitle').value || undefined;
             
-            const response = await fetch('/api/test-notification', {
+            const response = await fetch(window.AppConfig.api.endpoints.testNotification, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -307,6 +330,32 @@ class FCMNotificationManager {
 
     disableTestButton() {
         document.getElementById('testNotifyBtn').disabled = true;
+    }
+
+    formatDateTime(timestamp) {
+        try {
+            // timestampが存在しない場合は現在時刻を使用
+            const time = timestamp ? parseInt(timestamp) : Date.now();
+            const date = new Date(time);
+            
+            // 日付が無効な場合の処理
+            if (isNaN(date.getTime())) {
+                return '登録日時不明';
+            }
+            
+            // Safari互換性を考慮した日付フォーマット
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const seconds = String(date.getSeconds()).padStart(2, '0');
+            
+            return `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
+        } catch (error) {
+            console.error('Date formatting error:', error);
+            return '登録日時不明';
+        }
     }
 }
 

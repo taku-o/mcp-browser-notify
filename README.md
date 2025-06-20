@@ -30,44 +30,45 @@ PORT=3000
 NGROK_DOMAIN=your-domain.ngrok-free.app
 ```
 
-### Frontend Firebase Configuration
-Update the `firebaseConfig` object in the following files with your actual Firebase project settings:
+### Frontend Configuration
+Update the configuration in `public/config.js` with your actual Firebase project settings and VAPID key:
 
-1. **`public/index.html`** (around line 215)
-2. **`public/sw.js`** (around line 8)  
-3. **`public/firebase-messaging-sw.js`** (around line 8)
+```javascript
+window.AppConfig = {
+    // Firebase設定 - Firebase Consoleから取得
+    firebase: {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "your-project.firebaseapp.com",
+        projectId: "your-project-id",
+        storageBucket: "your-project.appspot.com",
+        messagingSenderId: "123456789012",
+        appId: "1:123456789012:web:abcdef1234567890abcdef"
+    },
 
-Get your Firebase configuration from:
+    // FCM VAPID公開鍵 - Firebase Consoleから取得
+    vapidKey: "YOUR_VAPID_KEY_FROM_FIREBASE_CONSOLE",
+
+    // その他の設定は通常変更不要
+    // ...
+};
+```
+
+#### Firebase設定を取得する方法:
 1. Open [Firebase Console](https://console.firebase.google.com/)
 2. Go to Project Settings → General tab
 3. In "Your apps" section, select your web app
 4. Choose "Firebase SDK snippet" → "Config"
-5. Copy the `firebaseConfig` object and replace the placeholder values in all three files
+5. Copy the `firebaseConfig` object values
 
-Example configuration:
-```javascript
-const firebaseConfig = {
-  apiKey: "AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-  authDomain: "your-project.firebaseapp.com",
-  projectId: "your-project-id",
-  storageBucket: "your-project.appspot.com",
-  messagingSenderId: "123456789012",
-  appId: "1:123456789012:web:abcdef1234567890abcdef"
-};
-```
-
-### VAPID Key Configuration
-For FCM token generation, you also need to update the VAPID key in `public/app.js`:
-
+#### VAPID Key取得方法:
 1. In Firebase Console, go to Project Settings → Cloud Messaging tab
 2. Under "Web configuration", generate a new key pair or copy the existing "Key pair"
-3. Replace the vapidKey value in `public/app.js` (around line 147):
+3. Use this key as the `vapidKey` value in `config.js`
 
-```javascript
-this.fcmToken = await window.getToken(this.messaging, {
-    vapidKey: 'YOUR_VAPID_KEY_FROM_FIREBASE_CONSOLE'
-});
-```
+**🎯 メリット**: 
+- 環境依存の設定が一箇所に集約
+- `index.html`, `sw.js`, `app.js`が自動的に設定を読み込み
+- 設定変更時の更新箇所が1ファイルのみ
 
 ### Option A: Direct Node.js
 ```bash

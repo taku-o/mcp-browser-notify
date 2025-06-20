@@ -206,24 +206,22 @@
         </div>
     </div>
 
+    <!-- 設定ファイル -->
+    <script src="config.js"></script>
+
     <!-- Firebase SDK -->
     <script type="module">
-        // Firebase 設定 - 実際のプロジェクトの設定に変更してください
+        // Firebase 設定を config.js から取得
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getMessaging, getToken, onMessage } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js';
         
-        const firebaseConfig = {
-            // Firebase プロジェクト設定
-            apiKey: "AIzaSyDX1234567890abcdefghijklmnopqrstuvwxyz",
-            authDomain: "mcp-browser-notify.firebaseapp.com",
-            projectId: "mcp-browser-notify",
-            storageBucket: "mcp-browser-notify.appspot.com",
-            messagingSenderId: "123456789012",
-            appId: "1:123456789012:web:abcdef1234567890abcdef"
-        };
+        // config.jsが読み込まれるまで待機
+        if (!window.AppConfig) {
+            throw new Error('設定ファイル(config.js)が読み込まれていません');
+        }
 
         // Firebase初期化
-        const app = initializeApp(firebaseConfig);
+        const app = initializeApp(window.AppConfig.firebase);
         const messaging = getMessaging(app);
 
         // グローバルに公開

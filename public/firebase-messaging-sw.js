@@ -1,19 +1,22 @@
 // Firebase Messaging Service Worker
 // This file is required by Firebase Cloud Messaging
 
+// 設定ファイルをインポート
+importScripts('config.js');
+
 // Firebase SDKをインポート
 importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
 
-// Firebase設定（実際のプロジェクト設定に変更してください）
-const firebaseConfig = {
-    apiKey: "AIzaSyDX1234567890abcdefghijklmnopqrstuvwxyz",
-    authDomain: "mcp-browser-notify.firebaseapp.com",
-    projectId: "mcp-browser-notify",
-    storageBucket: "mcp-browser-notify.appspot.com",
-    messagingSenderId: "123456789012",
-    appId: "1:123456789012:web:abcdef1234567890abcdef"
-};
+// config.jsから設定を取得
+if (!self.AppConfig) {
+    console.error('設定ファイル(config.js)が読み込まれていません');
+    throw new Error('設定ファイル(config.js)が読み込まれていません');
+}
+
+console.log('Firebase Messaging SW: AppConfig loaded successfully');
+
+const firebaseConfig = self.AppConfig.firebase;
 
 // Firebase初期化
 try {
@@ -27,24 +30,16 @@ try {
         console.log('Background message received in firebase-messaging-sw.js:', payload);
         
         const { title, body, icon, data } = payload.notification || {};
-        const notificationTitle = title || 'MCP Browser Notify';
+        const config = self.AppConfig.notification;
+        const notificationTitle = title || config.defaultTitle;
         const notificationOptions = {
-            body: body || '新しい通知があります',
-            icon: icon || '/icon-192x192.png',
-            badge: '/badge-72x72.png',
+            body: body || config.defaultBody,
+            icon: icon || config.defaultIcon,
+            badge: config.defaultBadge,
             timestamp: Date.now(),
             requireInteraction: false,
             data: data || {},
-            actions: [
-                {
-                    action: 'view',
-                    title: '確認'
-                },
-                {
-                    action: 'close',
-                    title: '閉じる'
-                }
-            ]
+            actions: config.actions
         };
 
         return self.registration.showNotification(notificationTitle, notificationOptions);

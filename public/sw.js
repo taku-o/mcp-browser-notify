@@ -1,18 +1,21 @@
 // Firebase Messaging Service Worker for FCM notifications
 
+// 設定ファイルをインポート
+importScripts('config.js');
+
 // Firebase SDKをインポート
 importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
 
-// Firebase設定
-const firebaseConfig = {
-    apiKey: "AIzaSyDX1234567890abcdefghijklmnopqrstuvwxyz",
-    authDomain: "mcp-browser-notify.firebaseapp.com",
-    projectId: "mcp-browser-notify",
-    storageBucket: "mcp-browser-notify.appspot.com",
-    messagingSenderId: "123456789012",
-    appId: "1:123456789012:web:abcdef1234567890abcdef"
-};
+// config.jsから設定を取得
+if (!self.AppConfig) {
+    console.error('設定ファイル(config.js)が読み込まれていません');
+    throw new Error('設定ファイル(config.js)が読み込まれていません');
+}
+
+console.log('Service Worker: AppConfig loaded successfully');
+
+const firebaseConfig = self.AppConfig.firebase;
 
 // Firebase初期化
 try {
@@ -26,24 +29,16 @@ try {
         console.log('Background message received:', payload);
         
         const { title, body, icon, data } = payload.notification || {};
-        const notificationTitle = title || 'MCP Browser Notify';
+        const config = self.AppConfig.notification;
+        const notificationTitle = title || config.defaultTitle;
         const notificationOptions = {
-            body: body || '新しい通知があります',
-            icon: icon || '/icon-192x192.png',
-            badge: '/badge-72x72.png',
+            body: body || config.defaultBody,
+            icon: icon || config.defaultIcon,
+            badge: config.defaultBadge,
             timestamp: Date.now(),
             requireInteraction: false,
             data: data || {},
-            actions: [
-                {
-                    action: 'view',
-                    title: '確認'
-                },
-                {
-                    action: 'close',
-                    title: '閉じる'
-                }
-            ]
+            actions: config.actions
         };
 
         return self.registration.showNotification(notificationTitle, notificationOptions);
@@ -63,41 +58,34 @@ self.addEventListener('push', function(event) {
 
     try {
         const data = event.data.json();
+        const config = self.AppConfig.notification;
         const options = {
             body: data.body,
-            icon: data.icon || '/icon-192x192.png',
-            badge: data.badge || '/badge-72x72.png',
+            icon: data.icon || config.defaultIcon,
+            badge: data.badge || config.defaultBadge,
             timestamp: data.timestamp || Date.now(),
             requireInteraction: false,
             data: data.data || {},
-            actions: [
-                {
-                    action: 'view',
-                    title: '確認'
-                },
-                {
-                    action: 'close',
-                    title: '閉じる'
-                }
-            ]
+            actions: config.actions
         };
 
         event.waitUntil(
-            self.registration.showNotification(data.title || 'MCP Browser Notify', options)
+            self.registration.showNotification(data.title || config.defaultTitle, options)
         );
     } catch (error) {
         console.error('Push event error:', error);
         
+        const config = self.AppConfig.notification;
         const fallbackOptions = {
-            body: event.data.text() || '新しい通知があります',
-            icon: '/icon-192x192.png',
-            badge: '/badge-72x72.png',
+            body: event.data.text() || config.defaultBody,
+            icon: config.defaultIcon,
+            badge: config.defaultBadge,
             timestamp: Date.now(),
             requireInteraction: false
         };
         
         event.waitUntil(
-            self.registration.showNotification('MCP Browser Notify', fallbackOptions)
+            self.registration.showNotification(config.defaultTitle, fallbackOptions)
         );
     }
 });
@@ -160,9 +148,11 @@ self.addEventListener('message', function(event) {
     console.log('Message received in service worker:', event.data);
     
     if (event.data && event.data.type === 'GET_VERSION') {
+        const config = self.AppConfig.app;
         event.ports[0].postMessage({
-            version: '2.0.0-fcm',
-            firebase: typeof firebase !== 'undefined'
+            version: config.version,
+            firebase: typeof firebase !== 'undefined',
+            appName: config.name
         });
     }
 });
