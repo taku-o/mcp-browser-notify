@@ -21,26 +21,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - プログラミング言語と設計は自由
 - 外部サービスの利用可能
 
-## Container-Use開発環境
-
-**重要**: すべてのファイル操作、コード作業、シェル操作は**必ずContainer-Use環境**を使用して実行する。単純なリクエストや汎用的なリクエストであっても例外なく環境を使用すること。
-
-### Container-Use環境の重要な制約
-
-- **Git CLI禁止**: 環境内でgit cliの直接使用は避ける
-  - 環境ツールがGit操作を自動処理
-  - `.git`の手動変更は環境の整合性を損なう可能性
-
-- **ファイル操作**: 必ず専用ツールを使用
-  - `mcp__container-use__environment_file_read`: ファイル読み取り
-  - `mcp__container-use__environment_file_write`: ファイル書き込み
-  - `mcp__container-use__environment_file_list`: ディレクトリ一覧
-  - `mcp__container-use__environment_file_delete`: ファイル削除
-
-- **コマンド実行**: `mcp__container-use__environment_run_cmd`を使用
-
-- **作業完了時の注意**: 必ずユーザーに`git checkout <branch_name>`でブランチを確認する方法を通知する
-
 ## 開発コマンド
 
 ```bash
@@ -122,19 +102,29 @@ FCMベースの通知システムとして以下の機能を提供：
 
 ## 開発手順
 
-### 開発環境の切り替え
+### 開発環境の選択
 
 プロジェクトでは2つの開発手法を選択可能：
 
-#### Container-Use環境での開発（推奨）
+#### 標準ツールでの開発（デフォルト・推奨）
+- Claude Codeの標準ツール（Read, Write, Edit, Bash等）を使用
+- 通常の開発作業、修正、機能追加に適している
+- シンプルで直接的なファイル操作
+- 標準的なGitワークフロー
+
+#### Container-Use環境での開発
 - **有効化**: `/container-use-on` コマンドを実行
 - すべてのファイル操作、コード作業、シェル操作でContainer-Use環境を使用
-- Git操作も環境が自動処理するため、複雑なプロジェクトに適している
+- Git操作も環境が自動処理するため、特別な環境分離が必要な場合に適している
+- **有効化後の制約**: 専用ツールでのファイル操作とコマンド実行が必要
 
-#### 標準ツールでの開発
-- **有効化**: `/container-use-off` コマンドを実行  
-- Claude Codeの標準ツール（Read, Write, Edit, Bash等）を使用
-- 簡単な修正や小規模な作業に適している
+### 標準開発ワークフロー（デフォルト）
+
+1. **作業ブランチ作成**: masterから新しい作業ブランチを作成
+2. **修正実装**: 標準ツール（Read, Write, Edit, Bash等）で修正を実装
+3. **テスト・ビルド**: `npm test`, `npm run build`等で動作確認
+4. **コミット**: 修正内容をcommit
+5. **プルリクエスト**: 必要に応じてPR作成
 
 ### Container-Use環境での開発ワークフロー
 
