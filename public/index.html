@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MCP Browser Notify - 通知設定 (FCM版)</title>
+    
+    <!-- PWA Support -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#007bff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="MCP Notify">
+    <link rel="apple-touch-icon" href="icon-192x192.png">
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -166,6 +174,17 @@
         <div class="section">
             <h2>🔔 通知許可設定</h2>
             <p>このブラウザで通知を受け取るための許可設定を行います。</p>
+            <div id="iosSafariNotice" class="config-notice" style="display: none;">
+                <h3>📱 iOS Safari をご利用の方へ</h3>
+                <p><strong>iOS Safari では以下の手順が必要です：</strong></p>
+                <ol>
+                    <li>Safari で「共有」ボタン（□↑）をタップ</li>
+                    <li>「ホーム画面に追加」を選択</li>
+                    <li>ホーム画面のアプリアイコンから起動</li>
+                    <li>PWAモードで「通知を許可する」ボタンを押す</li>
+                </ol>
+                <p><small>※ iOS 16.4以降が必要です。通常のSafariブラウザでは動作しません。</small></p>
+            </div>
             
             <div class="device-selection">
                 <h3>デバイスタイプを選択:</h3>

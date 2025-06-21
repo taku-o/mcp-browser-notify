@@ -28,6 +28,7 @@ class FCMNotificationManager {
         this.updateUI();
         this.displayCurrentUrl();
         this.setupForegroundMessageHandling();
+        this.showIOSSafariNoticeIfNeeded();
         
         // ユーザーIDの復元
         if (this.userId) {
@@ -151,6 +152,16 @@ class FCMNotificationManager {
 
             if (!this.messaging) {
                 throw new Error('Firebase messaging が初期化されていません');
+            }
+
+            // iOS Safari特有の制約チェック
+            if (this.isIOSSafari()) {
+                if (!this.isHTTPS()) {
+                    throw new Error('iOS SafariではHTTPS接続が必要です。localhost以外のHTTPSドメインを使用してください。');
+                }
+                if (!this.isInstalledPWA()) {
+                    throw new Error('iOS SafariではPWAとしてホーム画面に追加してから通知を有効にしてください。Safariの「共有」→「ホーム画面に追加」をタップしてください。');
+                }
             }
 
             this.showStatus('通知の許可を求めています...', 'info');
@@ -330,6 +341,29 @@ class FCMNotificationManager {
 
     disableTestButton() {
         document.getElementById('testNotifyBtn').disabled = true;
+    }
+
+    isIOSSafari() {
+        const userAgent = navigator.userAgent;
+        return /iPhone|iPad|iPod/.test(userAgent) && /Safari/.test(userAgent) && !/Chrome|CriOS|FxiOS/.test(userAgent);
+    }
+
+    isHTTPS() {
+        return window.location.protocol === 'https:' || window.location.hostname === 'localhost';
+    }
+
+    isInstalledPWA() {
+        // PWAとしてインストールされているかチェック
+        return window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+    }
+
+    showIOSSafariNoticeIfNeeded() {
+        if (this.isIOSSafari()) {
+            const notice = document.getElementById('iosSafariNotice');
+            if (notice) {
+                notice.style.display = 'block';
+            }
+        }
     }
 
     formatDateTime(timestamp) {

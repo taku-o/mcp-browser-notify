@@ -155,6 +155,24 @@ This application provides 6 powerful MCP tools:
 4. FCM token is automatically obtained and saved to the database
 5. Notifications can be sent via MCP tools
 
+### iOS Safari Usage
+
+**Requirements for iOS Safari (iOS 16.4+):**
+1. **PWA Installation Required**: iOS Safari only supports web push notifications when the app is installed as a PWA (Progressive Web App)
+2. **HTTPS Connection**: Secure connection is required (except localhost)
+3. **Installation Steps**:
+   - Open the website in Safari on iOS
+   - Tap the "Share" button (□↑)
+   - Select "Add to Home Screen"
+   - Launch the app from the home screen icon
+   - Allow notifications when prompted in PWA mode
+
+**Important Notes:**
+- Web push notifications do NOT work in regular Safari browser on iOS
+- The app must be launched from the home screen icon (PWA mode)
+- iOS 16.4 or later is required
+- The application automatically detects iOS Safari and displays installation instructions
+
 ## Technology Stack
 
 - **Backend**: Node.js + Express + TypeScript
@@ -250,6 +268,12 @@ curl http://localhost:3000/admin/stats
 3. **FCM Token Issues**
    - Check Firebase project configuration in frontend
    - Verify web app is properly configured in Firebase Console
+
+4. **iOS Safari "Unsupported Device" Error**
+   - Ensure iOS 16.4 or later is being used
+   - Install the app as PWA: Safari → Share → "Add to Home Screen"
+   - Launch from home screen icon, not Safari browser
+   - Allow notifications when prompted in PWA mode
 
 ## Security Notes
 
