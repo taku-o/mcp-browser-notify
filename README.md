@@ -1,6 +1,6 @@
 # MCP Browser Notify
 
-A Model Context Protocol (MCP) application for sending web push notifications using Firebase Cloud Messaging (FCM).
+A Model Context Protocol (MCP) application for sending web push notifications using Firebase Cloud Messaging (FCM). Provides 6 powerful MCP tools for notification management with multi-device support including iOS Safari PWA compatibility.
 
 ## 🚀 Quick Start
 
@@ -145,6 +145,67 @@ docker-compose up -d
 ```
 
 ## ⚙️ MCP Configuration
+
+### For Claude Code
+
+Claude Code uses the `claude mcp add` command to register MCP servers. Follow these steps:
+
+#### Method 1: Using claude mcp add command (Recommended)
+```bash
+# 1. Navigate to project directory
+cd /path/to/mcp-browser-notify
+
+# 2. Set environment variables (or use .env file)
+export FIREBASE_PROJECT_ID="your-project-id"
+export FIREBASE_SERVICE_ACCOUNT_KEY='{"type":"service_account","project_id":"your-project","private_key":"-----BEGIN PRIVATE KEY-----\nYOUR_PRIVATE_KEY_HERE\n-----END PRIVATE KEY-----\n","client_email":"firebase-adminsdk-xxx@your-project.iam.gserviceaccount.com"}'
+export SUPABASE_URL="https://your-project.supabase.co"
+export SUPABASE_ANON_KEY="your-anon-key"
+
+# 3. Build the project
+npm run build
+
+# 4. Add MCP server to Claude Code (using MCP-only entry point)
+claude mcp add browser-notify -- node /absolute/path/to/mcp-browser-notify/dist/mcp-only.js
+```
+
+#### Method 2: Using .env file (Recommended)
+```bash
+# 1. Create .env file with your credentials
+# 2. Navigate to project directory
+cd /path/to/mcp-browser-notify
+
+# 3. Build and add to Claude Code (using MCP-only entry point)
+npm run build
+claude mcp add browser-notify -- node $(pwd)/dist/mcp-only.js
+```
+
+#### Method 3: Direct execution
+```bash
+# Set environment variables first
+export FIREBASE_PROJECT_ID="your-project-id"
+export FIREBASE_SERVICE_ACCOUNT_KEY='{"type":"service_account",...}'
+export SUPABASE_URL="https://your-project.supabase.co"
+export SUPABASE_ANON_KEY="your-anon-key"
+
+# Run the MCP server directly
+cd /path/to/mcp-browser-notify
+npm run build
+node dist/index.js
+```
+
+#### Docker for Claude Code
+```bash
+docker run -d \
+  --name browser-notify-container \
+  -e FIREBASE_PROJECT_ID="your-project-id" \
+  -e FIREBASE_SERVICE_ACCOUNT_KEY='{"type":"service_account",...}' \
+  -e SUPABASE_URL="https://your-project.supabase.co" \
+  -e SUPABASE_ANON_KEY="your-anon-key" \
+  browser-notify
+
+# Add Docker container to Claude Code
+claude mcp add browser-notify -- docker exec browser-notify-container node dist/mcp-only.js
+```
 
 ### For Cursor IDE (.cursor/mcp.json)
 

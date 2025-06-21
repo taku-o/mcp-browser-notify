@@ -176,6 +176,17 @@ const mcpServer = new MCPServer(notificationService);
 
 async function startServer(): Promise<void> {
   try {
+    // MCP only mode check (for Claude Code)
+    const isMcpOnly = process.argv.includes('--mcp-only') || process.env.MCP_ONLY === 'true';
+    
+    if (isMcpOnly) {
+      // MCP stdio mode only
+      console.error('🔧 Starting MCP server in stdio mode only...');
+      await mcpServer.start();
+      console.error('✅ MCP server started successfully (stdio mode)');
+      return;
+    }
+    
     // MCPサーバーを先に開始
     await mcpServer.start();
     

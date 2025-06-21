@@ -1,6 +1,6 @@
 # MCP Browser Notify
 
-Firebase Cloud Messaging (FCM) を使用してユーザーにWebプッシュ通知を送信するMCPアプリです。
+Firebase Cloud Messaging (FCM) を使用してユーザーにWebプッシュ通知を送信するMCPアプリです。6つの強力なMCPツールによる通知管理と、iOS Safari PWA対応を含むマルチデバイスサポートを提供します。
 
 ## 機能
 
@@ -182,6 +182,67 @@ docker-compose up -d
 - **Frontend**: Firebase SDK + Service Worker
 
 ## MCP設定
+
+### Claude Code用
+
+Claude Codeは`claude mcp add`コマンドを使用してMCPサーバーを登録します。以下の手順に従ってください：
+
+#### 方法1: claude mcp addコマンド使用（推奨）
+```bash
+# 1. プロジェクトディレクトリに移動
+cd /path/to/mcp-browser-notify
+
+# 2. 環境変数を設定（または.envファイルを使用）
+export FIREBASE_PROJECT_ID="your-project-id"
+export FIREBASE_SERVICE_ACCOUNT_KEY='{"type":"service_account","project_id":"your-project","private_key":"-----BEGIN PRIVATE KEY-----\nYOUR_PRIVATE_KEY_HERE\n-----END PRIVATE KEY-----\n","client_email":"firebase-adminsdk-xxx@your-project.iam.gserviceaccount.com"}'
+export SUPABASE_URL="https://your-project.supabase.co"
+export SUPABASE_ANON_KEY="your-anon-key"
+
+# 3. プロジェクトをビルド
+npm run build
+
+# 4. Claude CodeにMCPサーバーを追加（MCP専用エントリーポイント使用）
+claude mcp add browser-notify -- node /absolute/path/to/mcp-browser-notify/dist/mcp-only.js
+```
+
+#### 方法2: .envファイル使用（推奨）
+```bash
+# 1. 認証情報を含む.envファイルを作成
+# 2. プロジェクトディレクトリに移動
+cd /path/to/mcp-browser-notify
+
+# 3. ビルドしてClaude Codeに追加（MCP専用エントリーポイント使用）
+npm run build
+claude mcp add browser-notify -- node $(pwd)/dist/mcp-only.js
+```
+
+#### 方法3: 直接実行
+```bash
+# 最初に環境変数を設定
+export FIREBASE_PROJECT_ID="your-project-id"
+export FIREBASE_SERVICE_ACCOUNT_KEY='{"type":"service_account",...}'
+export SUPABASE_URL="https://your-project.supabase.co"
+export SUPABASE_ANON_KEY="your-anon-key"
+
+# MCPサーバーを直接実行
+cd /path/to/mcp-browser-notify
+npm run build
+node dist/index.js
+```
+
+#### Claude Code用Docker
+```bash
+docker run -d \
+  --name browser-notify-container \
+  -e FIREBASE_PROJECT_ID="your-project-id" \
+  -e FIREBASE_SERVICE_ACCOUNT_KEY='{"type":"service_account",...}' \
+  -e SUPABASE_URL="https://your-project.supabase.co" \
+  -e SUPABASE_ANON_KEY="your-anon-key" \
+  browser-notify
+
+# DockerコンテナをClaude Codeに追加
+claude mcp add browser-notify -- docker exec browser-notify-container node dist/mcp-only.js
+```
 
 ### Cursor IDE用 (.cursor/mcp.json)
 

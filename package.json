@@ -8,6 +8,7 @@
     "build": "tsc",
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
+    "mcp": "node dist/mcp-only.js",
     "lint": "eslint src/**/*.ts",
     "test": "jest"
   },
