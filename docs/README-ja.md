@@ -185,18 +185,22 @@ docker-compose up -d
 
 ### Cursor IDE用 (.cursor/mcp.json)
 
-#### 直接Node.js実行
+**Cursor使用時の重要な注意事項:**
+- Cursorのmulti-root workspaceでは`cwd`パラメータが無視されます
+- commandとargsには絶対パスを使用してください
+- 環境変数のJSON文字列は適切にエスケープしてください
+
+#### 直接Node.js実行（推奨）
 ```json
 {
   "mcp": {
     "servers": {
       "browser-notify": {
         "command": "node",
-        "args": ["dist/index.js"],
-        "cwd": "/path/to/mcp-browser-notify",
+        "args": ["/absolute/path/to/mcp-browser-notify/dist/index.js"],
         "env": {
           "FIREBASE_PROJECT_ID": "your-project-id",
-          "FIREBASE_SERVICE_ACCOUNT_KEY": "{\"type\":\"service_account\",...}",
+          "FIREBASE_SERVICE_ACCOUNT_KEY": "{\"type\":\"service_account\",\"project_id\":\"your-project\",\"private_key\":\"-----BEGIN PRIVATE KEY-----\\nYOUR_PRIVATE_KEY_HERE\\n-----END PRIVATE KEY-----\\n\",\"client_email\":\"firebase-adminsdk-xxx@your-project.iam.gserviceaccount.com\"}",
           "SUPABASE_URL": "https://your-project.supabase.co",
           "SUPABASE_ANON_KEY": "your-anon-key"
         }
@@ -206,6 +210,9 @@ docker-compose up -d
 }
 ```
 
+#### 注意: MCPでの.envファイルの制限
+**重要:** MCP環境では通常`.env`ファイルが自動読み込みされません。環境変数はmcp.json設定で明示的に定義する必要があります。プロジェクトには直接Node.js実行用のdotenvサポートが含まれていますが、MCPでは明示的な環境変数宣言が必要です。
+
 #### Docker使用
 ```json
 {
@@ -213,8 +220,7 @@ docker-compose up -d
     "servers": {
       "browser-notify": {
         "command": "docker",
-        "args": ["exec", "browser-notify-container", "node", "dist/index.js"],
-        "cwd": "/path/to/mcp-browser-notify"
+        "args": ["exec", "browser-notify-container", "node", "dist/index.js"]
       }
     }
   }
@@ -274,6 +280,23 @@ curl http://localhost:3000/admin/stats
    - PWAとしてインストール: Safari → 共有 → 「ホーム画面に追加」
    - Safariブラウザではなく、ホーム画面のアイコンから起動
    - PWAモードで通知許可を求められた際に「許可」を選択
+
+5. **Firebase Service Account Key JSONパースエラー**
+   - mcp.jsonでのJSONエスケープを確認: クォートは`\"`、改行は`\\n`
+   - JSON文字列に制御文字が含まれていないか確認
+   - mcp.jsonでのインライン指定ではなく.envファイル使用を検討
+   - private_keyフィールドの改行文字が適切にエスケープされているか確認
+
+6. **Cursor MCPパス解決問題**
+   - mcp.jsonのargsでは絶対パスを使用: `/full/path/to/dist/index.js`
+   - Cursorはmulti-root workspaceでcwdパラメータを無視します
+   - MCP使用前にプロジェクトがビルドされているか確認: `npm run build`
+
+7. **MCP環境変数が読み込まれない問題**
+   - MCP環境では`.env`ファイルが自動的に読み込まれません
+   - mcp.jsonですべての環境変数を明示的に定義する必要があります
+   - FIREBASE_SERVICE_ACCOUNT_KEYが一行JSONとして適切にエスケープされているか確認
+   - 必要な変数がすべて存在するか確認: FIREBASE_PROJECT_ID, FIREBASE_SERVICE_ACCOUNT_KEY, SUPABASE_URL, SUPABASE_ANON_KEY
 
 ## セキュリティ注意事項
 

@@ -185,18 +185,22 @@ This application provides 6 powerful MCP tools:
 
 ### For Cursor IDE (.cursor/mcp.json)
 
-#### Direct Node.js
+**Important Notes for Cursor:**
+- Cursor's multi-root workspace ignores the `cwd` parameter
+- Use absolute paths for both command and args
+- Properly escape JSON strings in environment variables
+
+#### Direct Node.js (Recommended)
 ```json
 {
   "mcp": {
     "servers": {
       "browser-notify": {
         "command": "node",
-        "args": ["dist/index.js"],
-        "cwd": "/path/to/mcp-browser-notify",
+        "args": ["/absolute/path/to/mcp-browser-notify/dist/index.js"],
         "env": {
           "FIREBASE_PROJECT_ID": "your-project-id",
-          "FIREBASE_SERVICE_ACCOUNT_KEY": "{\"type\":\"service_account\",...}",
+          "FIREBASE_SERVICE_ACCOUNT_KEY": "{\"type\":\"service_account\",\"project_id\":\"your-project\",\"private_key\":\"-----BEGIN PRIVATE KEY-----\\nYOUR_PRIVATE_KEY_HERE\\n-----END PRIVATE KEY-----\\n\",\"client_email\":\"firebase-adminsdk-xxx@your-project.iam.gserviceaccount.com\"}",
           "SUPABASE_URL": "https://your-project.supabase.co",
           "SUPABASE_ANON_KEY": "your-anon-key"
         }
@@ -206,6 +210,9 @@ This application provides 6 powerful MCP tools:
 }
 ```
 
+#### Note: .env file limitations in MCP
+**Important:** MCP environments typically do not read `.env` files automatically. Environment variables must be explicitly defined in the mcp.json configuration. The project includes dotenv support for direct Node.js execution, but MCP requires explicit env variable declaration.
+
 #### Docker
 ```json
 {
@@ -213,8 +220,7 @@ This application provides 6 powerful MCP tools:
     "servers": {
       "browser-notify": {
         "command": "docker",
-        "args": ["exec", "browser-notify-container", "node", "dist/index.js"],
-        "cwd": "/path/to/mcp-browser-notify"
+        "args": ["exec", "browser-notify-container", "node", "dist/index.js"]
       }
     }
   }
@@ -274,6 +280,23 @@ curl http://localhost:3000/admin/stats
    - Install the app as PWA: Safari → Share → "Add to Home Screen"
    - Launch from home screen icon, not Safari browser
    - Allow notifications when prompted in PWA mode
+
+5. **Firebase Service Account Key JSON Parse Error**
+   - Ensure proper JSON escaping in mcp.json: `\"` for quotes, `\\n` for newlines
+   - Verify no control characters in the JSON string
+   - Consider using .env file instead of inline JSON in mcp.json
+   - Check that private_key field has properly escaped newlines
+
+6. **Cursor MCP Path Resolution Issues**
+   - Use absolute paths in mcp.json args: `/full/path/to/dist/index.js`
+   - Cursor ignores cwd parameter in multi-root workspaces
+   - Ensure project is built: `npm run build` before MCP usage
+
+7. **MCP Environment Variables Not Loading**
+   - MCP environments do not automatically read `.env` files
+   - Must explicitly define all environment variables in mcp.json
+   - Verify FIREBASE_SERVICE_ACCOUNT_KEY is properly escaped as single-line JSON
+   - Check that all required variables are present: FIREBASE_PROJECT_ID, FIREBASE_SERVICE_ACCOUNT_KEY, SUPABASE_URL, SUPABASE_ANON_KEY
 
 ## Security Notes
 
